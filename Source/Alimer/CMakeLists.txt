@@ -13,6 +13,10 @@ set(SOURCE_FILES ${CPP_FILES})
 # Add engine sub folders, both include and src
 alimer_add_directory(Core)
 
+if(ALIMER_PLATFORM_WINDOWS OR ALIMER_PLATFORM_UWP)
+	alimer_add_platform_directory(Core Windows)
+endif()
+
 add_library (${TARGET_NAME} ${ALIMER_LIB_TYPE} ${HEADER_FILES} ${SOURCE_FILES})
 
 if ( ALIMER_SHARED )
