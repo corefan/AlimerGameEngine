@@ -16,6 +16,7 @@ alimer_add_directory(Engine)
 
 if(ALIMER_PLATFORM_WINDOWS OR ALIMER_PLATFORM_UWP)
 	alimer_add_platform_directory(Core Windows)
+	alimer_add_platform_directory(Engine Windows)
 endif()
 
 add_library (${TARGET_NAME} ${ALIMER_LIB_TYPE} ${HEADER_FILES} ${SOURCE_FILES})
