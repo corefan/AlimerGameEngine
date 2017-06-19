@@ -68,13 +68,72 @@ namespace Alimer
 			}
 
 			// Skip emulated mouse events that are caused by touch
-			//bool emulatedMouse = (GetMessageExtraInfo() & 0xffffff00) == 0xff515700;
+			bool emulatedMouse = (GetMessageExtraInfo() & 0xffffff00) == 0xff515700;
 			Application* app = Application::GetInstance();
 
 			switch (msg)
 			{
 			case WM_CREATE:
 				::UpdateWindow(hwnd);
+				break;
+
+			case WM_KEYDOWN:
+			case WM_SYSKEYDOWN:
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+				break;
+
+			case WM_LBUTTONDOWN:
+			case WM_LBUTTONUP:
+			case WM_RBUTTONDOWN:
+			case WM_RBUTTONUP:
+			case WM_MBUTTONDOWN:
+			case WM_MBUTTONUP:
+			case WM_XBUTTONDOWN:
+			case WM_XBUTTONUP:
+				if (!emulatedMouse)
+				{
+					//HandleMouseButtonEvent(msg, wParam, lParam);
+				}
+
+				if (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP)
+					return TRUE;
+
+				return 0;
+
+			case WM_MOUSEMOVE:
+				if (!emulatedMouse)
+				{
+
+				}
+
+				return TRUE;
+
+			case WM_MOUSEWHEEL:
+			case WM_MOUSEHWHEEL:
+				return TRUE;
+
+			case WM_TOUCH:
+				return TRUE;
+
+			case WM_SETCURSOR:
+				if (LOWORD(lParam) == HTCLIENT)
+				{
+					// TODO:
+				}
+
+				break;
+
+			case WM_SETFOCUS:
+				break;
+
+			case WM_KILLFOCUS:
+				break;
+
+			case WM_SIZE:
+				break;
+
+			case WM_PAINT:
 				break;
 
 			case WM_ERASEBKGND:
@@ -109,6 +168,9 @@ namespace Alimer
 					PostQuitMessage(0);
 
 				return 0;
+
+			case WM_DPICHANGED:
+				break;
 			}
 
 			return DefWindowProcW(hwnd, msg, wParam, lParam);
