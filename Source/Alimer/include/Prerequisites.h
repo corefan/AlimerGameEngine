@@ -7,5 +7,6 @@
 
 #pragma once
 
+#include "Version.h"
 #include "Platform.h"
 #include "Logger.h"
