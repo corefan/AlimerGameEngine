@@ -18,11 +18,4 @@ public:
 	virtual ~HelloWorld();
 
 private:
-	/*void Setup() override;
-	void Initialize() override;
-	void Draw(float elapsedTime, float totalElapsedTime) override;
-
-	void HandleResize(WindowResizeEvent& event);
-
-	UniquePtr<GpuCommandList> _commandList;*/
 };
