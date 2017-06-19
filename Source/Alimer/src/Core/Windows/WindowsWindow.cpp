@@ -6,6 +6,7 @@
 */
 
 #include "WindowsWindow.h"
+#include "Engine/Application.h"
 #include <Dbt.h>
 
 namespace Alimer
@@ -68,7 +69,7 @@ namespace Alimer
 
 			// Skip emulated mouse events that are caused by touch
 			//bool emulatedMouse = (GetMessageExtraInfo() & 0xffffff00) == 0xff515700;
-			//Application* app = Application::GetInstance();
+			Application* app = Application::GetInstance();
 
 			switch (msg)
 			{
@@ -86,7 +87,7 @@ namespace Alimer
 				case SC_SCREENSAVE:
 				case SC_MONITORPOWER:
 				{
-					//if (app && !app->IsScreenSaverEnabled())
+					if (app && !app->IsScreenSaverEnabled())
 					{
 						// Disable screensaver.
 						return 0;
