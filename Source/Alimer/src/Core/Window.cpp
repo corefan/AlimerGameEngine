@@ -17,6 +17,9 @@ namespace Alimer
 {
 	Window::Window(uint32_t width, uint32_t height, const String& title)
 		: _impl(new PlatformWindowImpl(width, height, title))
+		, _width(width)
+		, _height(height)
+		, _title(title)
 	{
 
 	}

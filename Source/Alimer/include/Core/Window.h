@@ -38,10 +38,28 @@ namespace Alimer
 		*/
 		WindowHandle GetWindowHandle() const;
 
+		/**
+		* Get width of the window.
+		*/
+		uint32_t GetWidth() const {
+			return _width;
+		}
+
+		/**
+		* Get height of the window.
+		*/
+		uint32_t GetHeight() const {
+			return _height;
+		}
+
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Window);
 
 		/// Platform-specific implementation of the window.
-		priv::WindowImpl* _impl;           
+		priv::WindowImpl* _impl = nullptr;
+
+		uint32_t _width;
+		uint32_t _height;
+		String _title;
 	};
 }
