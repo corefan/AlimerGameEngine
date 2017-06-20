@@ -89,6 +89,12 @@ namespace Alimer
 						_graphicsDevice.reset(new Direct3D12Device());
 						break;
 					}
+
+					// Initialize graphics device with our main window.
+					if (!_graphicsDevice->Initialize(_window.get()))
+					{
+						return false;
+					}
 				}
 			}
 		}
@@ -97,5 +103,24 @@ namespace Alimer
 		_running = true;
 		_initialized = true;
 		return true;
+	}
+
+	void Engine::RunFrame()
+	{
+		ALIMER_ASSERT(_initialized);
+
+		// If not headless, and the graphics subsystem no longer has a window open, assume we should exit
+		if (!_headless && !_graphicsDevice->IsInitialized())
+			_running = false;
+
+		if (!_running)
+			return;
+
+		if (!_graphicsDevice->BeginFrame())
+			return;
+
+		// TODO: Perform rendering.
+
+		_graphicsDevice->EndFrame();
 	}
 }

@@ -61,7 +61,7 @@ namespace Alimer
 		// update input
 		if (_state == ApplicationState::Running)
 		{
-			//_engine->RunFrame();
+			_engine->RunFrame();
 		}
 		else if (_state == ApplicationState::Paused)
 		{

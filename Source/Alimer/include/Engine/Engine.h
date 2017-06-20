@@ -39,6 +39,11 @@ namespace Alimer
 		bool Initialize(EngineSettings& newSettings);
 
 		/**
+		* Run one frame.
+		*/
+		void RunFrame();
+
+		/**
 		* Return whether engine is running.
 		*/
 		bool IsRunning() const {
