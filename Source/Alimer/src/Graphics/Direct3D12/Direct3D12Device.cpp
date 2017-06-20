@@ -142,8 +142,48 @@ namespace Alimer
 
 		// This sample does not support fullscreen transitions.
 		ThrowIfFailed(_factory->MakeWindowAssociation(window->GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER));
-
 		ThrowIfFailed(swapChain.As(&_swapChain));
+
+		// Get the initial render target and arbitrarily choose a "previous" render target that's different
+		_previousRenderTargetIndex = _renderTargetIndex = _swapChain->GetCurrentBackBufferIndex();
+		_previousRenderTargetIndex = _renderTargetIndex == 0 ? 1 : 0;
+
+		// Get descriptor heap size.
+		_rtvDescriptorSize = _d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+		// Create fence.
+		ThrowIfFailed(_d3d12Device->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence)));
+		_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		ALIMER_ASSERT(_fenceEvent != nullptr);
+
+		// Initial the serial for all render targets
+		const uint64_t initialFenceValue = 0;
+		for (uint32_t n = 0; n < FrameCount; ++n) {
+			_lastFenceRenderTargetWasUsed[n] = initialFenceValue;
+		}
+
+		// Describe and create a render target view (RTV) descriptor heap.
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+		rtvHeapDesc.NumDescriptors = FrameCount;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		ThrowIfFailed(_d3d12Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&_renderTargetViewHeap)));
+		_rtvDescriptorSize = _d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+		// Create a RTV for each frame.
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle = _renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
+			for (uint32_t n = 0; n < FrameCount; ++n) {
+				ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&_renderTargetResources[n])));
+				_d3d12Device->CreateRenderTargetView(_renderTargetResources[n].Get(), nullptr, renderTargetViewHandle);
+				renderTargetViewHandle.ptr += _rtvDescriptorSize;
+			}
+		}
+
+		ThrowIfFailed(_d3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&_commandAllocator)));
+		// Create the command list.
+		ThrowIfFailed(_d3d12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, _commandAllocator.Get(), nullptr, IID_PPV_ARGS(&_commandList)));
+		ThrowIfFailed(_commandList->Close());
 
 		return true;
 	}
@@ -153,6 +193,8 @@ namespace Alimer
 		if (!Parent::BeginFrame())
 			return false;
 
+		ThrowIfFailed(_commandAllocator->Reset());
+
 		return true;
 	}
 
@@ -161,9 +203,54 @@ namespace Alimer
 		if (!_initialized)
 			return;
 
+		{
+			ThrowIfFailed(_commandList->Reset(_commandAllocator.Get(), nullptr));
+
+			D3D12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle = _renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
+			renderTargetViewHandle.ptr += _rtvDescriptorSize * _renderTargetIndex;
+
+			//_commandList->OMSetRenderTargets(1, &_renderTargetViewHandle, FALSE, nullptr);
+			// Record commands.
+			const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+			_commandList->ClearRenderTargetView(renderTargetViewHandle, clearColor, 0, nullptr);
+
+			// Close command list
+			_commandList->Close();
+
+			// Execute the command list.
+			ID3D12CommandList* commandLists[] = { _commandList.Get() };
+			_commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+		}
+
 		// Present the frame.
 		const UINT presentInterval = 1;
 		ThrowIfFailed(_swapChain->Present(presentInterval, 0));
+
+		// Increment fence value
+		NextFenceValue();
+
+		_previousRenderTargetIndex = _renderTargetIndex;
+		_renderTargetIndex = _swapChain->GetCurrentBackBufferIndex();
+
+		WaitForFenceValue(_lastFenceRenderTargetWasUsed[_renderTargetIndex]);
+		_lastFenceRenderTargetWasUsed[_renderTargetIndex] = _fenceValue;
+	}
+
+	void Direct3D12Device::NextFenceValue()
+	{
+		// Signal and increment the fence value.
+		const UINT64 fence = _fenceValue;
+		ThrowIfFailed(_commandQueue->Signal(_fence.Get(), fence));
+		_fenceValue++;
+	}
+
+	void Direct3D12Device::WaitForFenceValue(UINT64 value)
+	{
+		const UINT64 lastCompletedSerial = _fence->GetCompletedValue();
+		if (lastCompletedSerial < value) {
+			ThrowIfFailed(_fence->SetEventOnCompletion(value, _fenceEvent));
+			WaitForSingleObject(_fenceEvent, INFINITE);
+		}
 	}
 
 	// Helper function for acquiring the first available hardware adapter that supports Direct3D 12.
