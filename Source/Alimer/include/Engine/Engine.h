@@ -38,9 +38,25 @@ namespace Alimer
 		*/
 		bool Initialize(EngineSettings& newSettings);
 
-		/// Return whether engine is running.
+		/**
+		* Return whether engine is running.
+		*/
 		bool IsRunning() const {
 			return _running;
+		}
+
+		/**
+		* Gets the main window instance.
+		*/
+		Window* GetWindow() const { 
+			return _window.get(); 
+		}
+
+		/**
+		* Gets the singleton GraphicsDevice instance.
+		*/
+		GraphicsDevice* GetGraphicsDevice() const { 
+			return _graphicsDevice.get();
 		}
 
 	private:
@@ -52,5 +68,8 @@ namespace Alimer
 
 		/// Engine main Window
 		std::unique_ptr<Window> _window;
+
+		/// Graphics device.
+		std::unique_ptr<GraphicsDevice> _graphicsDevice;
 	};
 }

@@ -13,6 +13,7 @@ set(SOURCE_FILES ${CPP_FILES})
 # Add engine sub folders, both include and src
 alimer_add_directory(Core)
 alimer_add_directory(Engine)
+alimer_add_directory(Graphics)
 
 if(ALIMER_PLATFORM_WINDOWS OR ALIMER_PLATFORM_UWP)
 	alimer_add_platform_directory(Core Windows)

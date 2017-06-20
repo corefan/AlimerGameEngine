@@ -48,7 +48,32 @@ namespace Alimer
 			}
 			else*/
 			{
+				ALIMER_LOGINFO("Creating window with {%d, %d} size.", newSettings.width, newSettings.height);
+
 				_window.reset(new Window(newSettings.width, newSettings.height, newSettings.title/*, WindowFlagBits::Shown | WindowFlagBits::Resizable*/));
+
+				if (newSettings.graphicsDeviceType == GraphicsDeviceType::Default)
+				{
+					auto availableDrivers = GraphicsDevice::GetAvailableDrivers();
+
+					if (availableDrivers.find(GraphicsDeviceType::Direct3D12) != availableDrivers.end())
+					{
+						newSettings.graphicsDeviceType = GraphicsDeviceType::Direct3D12;
+					}
+					else if (availableDrivers.find(GraphicsDeviceType::Vulkan) != availableDrivers.end())
+					{
+						newSettings.graphicsDeviceType = GraphicsDeviceType::Vulkan;
+					}
+
+					else if (availableDrivers.find(GraphicsDeviceType::OpenGL) != availableDrivers.end())
+					{
+						newSettings.graphicsDeviceType = GraphicsDeviceType::OpenGL;
+					}
+					else
+					{
+						newSettings.graphicsDeviceType = GraphicsDeviceType::Empty;
+					}
+				}
 			}
 		}
 

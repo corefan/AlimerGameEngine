@@ -156,12 +156,6 @@ namespace Alimer
 	Alimer::Logger::Log(Alimer::LogLevel::Warning, "\n"); \
 } while (0)
 
-#define ALIMER_LOG_MESSAGE(...) do \
-{ \
-	Alimer::Logger::Log(Alimer::LogLevel::Info, __VA_ARGS__); \
-	Alimer::Logger::Log(Alimer::LogLevel::Info, "\n"); \
-} while (0)
-
 #define ALIMER_LOGDEBUG(...) Alimer::Logger::Log(Alimer::LogLevel::Debug, __VA_ARGS__)
 #define ALIMER_LOGINFO(...) Alimer::Logger::Log(Alimer::LogLevel::Info, __VA_ARGS__)
 #define ALIMER_LOGWARNING(...) Alimer::Logger::Log(Alimer::LogLevel::Warning, __VA_ARGS__)
@@ -171,7 +165,6 @@ namespace Alimer
 
 #define ALIMER_ERROR(...)
 #define ALIMER_WARN(...)
-#define ALIMER_LOG_MESSAGE(...) 
 
 #define ALIMER_LOGDEBUG(...)
 #define ALIMER_LOGINFO(...)

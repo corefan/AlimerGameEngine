@@ -8,11 +8,14 @@
 #pragma once
 
 #include "Prerequisites.h"
+#include "Graphics/GraphicsDevice.h"
 
 namespace Alimer
 {
 	struct EngineSettings
 	{
+		GraphicsDeviceType graphicsDeviceType = GraphicsDeviceType::Default;
+
 		String title = "Alimer";
 		uint32_t width = 800;
 		uint32_t height = 600;
