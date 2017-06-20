@@ -7,6 +7,10 @@
 
 #include "Engine/Engine.h"
 
+#if defined(ALIMER_WINDOWS)
+#include "Graphics/Direct3D12/Direct3D12Device.h"
+#endif
+
 namespace Alimer
 {
 	static Engine* engineInstance = nullptr;
@@ -72,6 +76,18 @@ namespace Alimer
 					else
 					{
 						newSettings.graphicsDeviceType = GraphicsDeviceType::Empty;
+					}
+
+					switch (newSettings.graphicsDeviceType)
+					{
+					case GraphicsDeviceType::Empty:
+						ALIMER_LOGINFO("Using empty graphics backend.");
+						break;
+
+					case GraphicsDeviceType::Direct3D12:
+						ALIMER_LOGINFO("Using DirectX12 graphics backend.");
+						_graphicsDevice.reset(new Direct3D12Device());
+						break;
 					}
 				}
 			}

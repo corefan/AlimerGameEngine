@@ -48,17 +48,17 @@ namespace Alimer
 		* Initialize device with given window.
 		* @param window The window where to perform rendering.
 		*/
-		bool Initialize(Window* window);
+		virtual bool Initialize(Window* window);
 
 		/**
 		* Begin frame rendering. Return true if device available and can render.
 		*/
-		bool BeginFrame();
+		virtual bool BeginFrame();
 
 		/**
 		* End frame rendering and swap buffers.
 		*/
-		void EndFrame();
+		virtual void EndFrame();
 
 		/**
 		* Gets the type of this device.
@@ -71,7 +71,7 @@ namespace Alimer
 			return _initialized;
 		}
 
-	private:
+	protected:
 		DISALLOW_COPY_AND_ASSIGN(GraphicsDevice);
 
 		GraphicsDeviceType _deviceType;
