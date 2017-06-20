@@ -6,12 +6,55 @@
 */
 
 #include "Engine/Application.h"
+#include <objbase.h>
 #include <windows.h>
+#include <shellscalingapi.h>
+#include <intrin.h>
+#include <mmsystem.h>
+
+#if defined(_MSC_VER)
+extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent();
+#endif
 
 namespace Alimer
 {
+	HRESULT AlimerCoInitialize()
+	{
+#if	defined(ALIMER_WINMODERN)
+		return S_OK;
+#else
+		HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+		if (hr == RPC_E_CHANGED_MODE) {
+			hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+		}
+
+		// S_FALSE means success, but someone else already initialized.
+		// You still need to call CoUninitialize in this case!
+		if (hr == S_FALSE) {
+			return S_OK;
+		}
+
+		return hr;
+#endif
+	}
+
 	int Application::RunPlatformLoop()
 	{
+		HRESULT hr = AlimerCoInitialize();
+		if (FAILED(hr))
+		{
+			ALIMER_LOGERROR("Failed to initialize COM");
+			return EXIT_FAILURE;
+		}
+
+#ifdef _DEBUG
+		if (!IsDebuggerPresent() && !AllocConsole())
+		{
+			ALIMER_LOGERROR("Failed to allocate console");
+			return EXIT_FAILURE;
+		}
+#endif
+
 		if (_state != ApplicationState::Running)
 		{
 			InitializeBeforeRun();
@@ -45,6 +88,8 @@ namespace Alimer
 			if (_state == ApplicationState::Uninitialzed)
 				break;
 		}
+
+		//CoUninitialize();
 
 		return exitCode;
 	}

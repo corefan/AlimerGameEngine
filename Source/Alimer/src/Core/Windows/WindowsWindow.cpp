@@ -27,6 +27,57 @@ namespace Alimer
 		{
 			if (!functionsInitialized)
 			{
+				// Try SetProcessDpiAwareness first
+				HMODULE shCoreDll = ::LoadLibraryW(L"shcore.dll");
+				if (shCoreDll)
+				{
+					enum ProcessDpiAwareness
+					{
+						ProcessDpiUnaware = 0,
+						ProcessSystemDpiAware = 1,
+						ProcessPerMonitorDpiAware = 2
+					};
+
+					typedef HRESULT(WINAPI* SetProcessDpiAwarenessFuncType)(ProcessDpiAwareness);
+					SetProcessDpiAwarenessFuncType SetProcessDpiAwarenessFunc = reinterpret_cast<SetProcessDpiAwarenessFuncType>(GetProcAddress(shCoreDll, "SetProcessDpiAwareness"));
+					//GetDpiForMonitor = (HRESULT(WINAPI *)(HMONITOR, MONITOR_DPI_TYPE, UINT *, UINT *))::GetProcAddress(__win32Data.shcoreDLL, "GetDpiForMonitor");
+
+					if (SetProcessDpiAwarenessFunc)
+					{
+						// We only check for E_INVALIDARG because we would get
+						// E_ACCESSDENIED if the DPI was already set previously
+						// and S_OK means the call was successful
+						if (SetProcessDpiAwarenessFunc(ProcessSystemDpiAware) == E_INVALIDARG)
+						{
+							ALIMER_LOGERROR("Failed to set process DPI awareness");
+						}
+					}
+
+					FreeLibrary(shCoreDll);
+				}
+				else
+				{
+					HMODULE user32Dll = ::LoadLibraryW(L"user32.dll");
+
+					// Fall back to SetProcessDPIAware if SetProcessDpiAwareness
+					// is not available on this system
+					if (user32Dll)
+					{
+						typedef BOOL(WINAPI* SetProcessDPIAwareFuncType)(void);
+						SetProcessDPIAwareFuncType SetProcessDPIAwareFunc = reinterpret_cast<SetProcessDPIAwareFuncType>(GetProcAddress(user32Dll, "SetProcessDPIAware"));
+
+						if (SetProcessDPIAwareFunc)
+						{
+							if (!SetProcessDPIAwareFunc())
+							{
+								ALIMER_LOGERROR("Failed to set process DPI awareness");
+							}
+						}
+
+						FreeLibrary(user32Dll);
+					}
+				}
+
 				HMODULE userDll = GetModuleHandleW(L"user32.dll");
 				registerTouchWindow = (BOOL(WINAPI*)(HWND, ULONG))(void*)GetProcAddress(userDll, "RegisterTouchWindow");
 				getTouchInputInfo = (BOOL(WINAPI*)(HTOUCHINPUT, UINT, PTOUCHINPUT, int))(void*)GetProcAddress(userDll, "GetTouchInputInfo");
@@ -284,15 +335,15 @@ namespace Alimer
 
 			// TODO: Resolve content scale from DPI
 			/*if (__win32Data.shcoreDLL &&
-				__win32Data.GetDpiForMonitor)
+			__win32Data.GetDpiForMonitor)
 			{
-				UINT dpiX = 0;
-				UINT dpiY = 0;
+			UINT dpiX = 0;
+			UINT dpiY = 0;
 
-				if (SUCCEEDED(__win32Data.GetDpiForMonitor(_monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY)))
-				{
-					_contentScale = static_cast<float>(dpiX) / DipsPerInch;
-				}
+			if (SUCCEEDED(__win32Data.GetDpiForMonitor(_monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY)))
+			{
+			_contentScale = static_cast<float>(dpiX) / DipsPerInch;
+			}
 			}*/
 
 			if (fullscreen)
