@@ -93,7 +93,6 @@ namespace Alimer
 			D3D_FEATURE_LEVEL_11_0,
 			IID_PPV_ARGS(&_d3d12Device))))
 		{
-
 			// Try with WARP
 			ComPtr<IDXGIAdapter> warpAdapter;
 			ThrowIfFailed(_factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));

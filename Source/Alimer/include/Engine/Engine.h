@@ -74,6 +74,9 @@ namespace Alimer
 		bool _running = false;
 		bool _headless = false;
 
+		/// Logger
+		std::unique_ptr<Logger> _logger;
+
 		/// Engine main Window
 		std::unique_ptr<Window> _window;
 

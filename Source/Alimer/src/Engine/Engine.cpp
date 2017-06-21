@@ -16,13 +16,16 @@ namespace Alimer
 	static Engine* engineInstance = nullptr;
 
 	Engine::Engine()
+		: _logger(new Logger())
 	{
-		new Logger();
 		engineInstance = this;
 	}
 
 	Engine::~Engine()
 	{
+		// Close logger file.
+		_logger->Close();
+
 		_initialized = false;
 		_running = false;
 
@@ -41,6 +44,10 @@ namespace Alimer
 			return true;
 
 		_headless = newSettings.headless;
+
+		// Initialize logger
+		_logger->Open("Alimer.log");
+
 		ALIMER_LOGINFO("Initializing Alimer Engine %s...", ALIMER_VERSION_STR);
 
 		// Initialize graphics & audio output
@@ -99,9 +106,9 @@ namespace Alimer
 			}
 		}
 
-		ALIMER_LOGINFO("Engine Initialize with success");
 		_running = true;
 		_initialized = true;
+		ALIMER_LOGINFO("Engine Initialize with success.");
 		return true;
 	}
 
