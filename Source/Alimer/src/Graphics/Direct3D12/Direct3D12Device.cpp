@@ -156,7 +156,7 @@ namespace Alimer
 		_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		ALIMER_ASSERT(_fenceEvent != nullptr);
 
-		// Initial the serial for all render targets
+		// Initial the fence values for all render targets.
 		const uint64_t initialFenceValue = 0;
 		for (uint32_t n = 0; n < FrameCount; ++n) {
 			_lastFenceRenderTargetWasUsed[n] = initialFenceValue;
@@ -209,6 +209,15 @@ namespace Alimer
 			D3D12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle = _renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
 			renderTargetViewHandle.ptr += _rtvDescriptorSize * _renderTargetIndex;
 
+			D3D12_RESOURCE_BARRIER resourceBarrier;
+			resourceBarrier.Transition.pResource = _renderTargetResources[_renderTargetIndex].Get();
+			resourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+			resourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+			resourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			resourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+			_commandList->ResourceBarrier(1, &resourceBarrier);
+
 			//_commandList->OMSetRenderTargets(1, &_renderTargetViewHandle, FALSE, nullptr);
 			// Record commands.
 			const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
@@ -216,6 +225,14 @@ namespace Alimer
 
 			// Close command list
 			_commandList->Close();
+
+			resourceBarrier.Transition.pResource = _renderTargetResources[_renderTargetIndex].Get();
+			resourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+			resourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+			resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+			resourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+			resourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+			_commandList->ResourceBarrier(1, &resourceBarrier);
 
 			// Execute the command list.
 			ID3D12CommandList* commandLists[] = { _commandList.Get() };

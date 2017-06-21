@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Prerequisites.h"
+#include "Core/RefCounted.h"
 #include "Core/Window.h"
 #include <set>
 
@@ -25,7 +25,7 @@ namespace Alimer
 	/**
 	* Graphics Device.
 	*/
-	class ALIMER_API GraphicsDevice
+	class ALIMER_API GraphicsDevice : public RefCounted
 	{
 	protected:
 		/**
