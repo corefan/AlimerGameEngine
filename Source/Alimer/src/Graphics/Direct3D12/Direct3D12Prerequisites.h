@@ -8,6 +8,10 @@
 #pragma once
 
 #include "Prerequisites.h"
+#include <vector>
+#include <queue>
+#include <map>
+#include <mutex>
 #include <windows.h>
 
 #include <wrl.h>
