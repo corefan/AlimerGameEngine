@@ -11,6 +11,9 @@ namespace Alimer
 {
 	Direct3D12Device::Direct3D12Device()
 		: GraphicsDevice(GraphicsDeviceType::Direct3D12)
+		, _graphicsQueue(D3D12_COMMAND_LIST_TYPE_DIRECT)
+		, _computeQueue(D3D12_COMMAND_LIST_TYPE_COMPUTE)
+		, _copyQueue(D3D12_COMMAND_LIST_TYPE_COPY)
 	{
 		UINT dxgiFactoryFlags = 0;
 
@@ -78,6 +81,9 @@ namespace Alimer
 
 	Direct3D12Device::~Direct3D12Device()
 	{
+		_graphicsQueue.Shutdown();
+		_computeQueue.Shutdown();
+		_copyQueue.Shutdown();
 	}
 
 	bool Direct3D12Device::Initialize(Window* window)
@@ -111,12 +117,10 @@ namespace Alimer
 		FeatureLevels.pFeatureLevelsRequested = FeatureLevelsList;
 		ThrowIfFailed(_d3d12Device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &FeatureLevels, sizeof(FeatureLevels)));
 
-		// Describe and create the command queue.
-		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-		ThrowIfFailed(_d3d12Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&_commandQueue)));
+		// Init command queue's
+		_graphicsQueue.Initialize(_d3d12Device.Get());
+		_computeQueue.Initialize(_d3d12Device.Get());
+		_copyQueue.Initialize(_d3d12Device.Get());
 
 		// Describe and create the swap chain.
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
@@ -131,7 +135,7 @@ namespace Alimer
 		// Swap chain needs the queue so that it can force a flush on it.
 		ComPtr<IDXGISwapChain1> swapChain;
 		ThrowIfFailed(_factory->CreateSwapChainForHwnd(
-			_commandQueue.Get(),
+			_graphicsQueue.GetCommandQueue(),
 			window->GetWindowHandle(),
 			&swapChainDesc,
 			nullptr,
@@ -149,17 +153,6 @@ namespace Alimer
 
 		// Get descriptor heap size.
 		_rtvDescriptorSize = _d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-		// Create fence.
-		ThrowIfFailed(_d3d12Device->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence)));
-		_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		ALIMER_ASSERT(_fenceEvent != nullptr);
-
-		// Initial the fence values for all render targets.
-		const uint64_t initialFenceValue = 0;
-		for (uint32_t n = 0; n < FrameCount; ++n) {
-			_lastFenceRenderTargetWasUsed[n] = initialFenceValue;
-		}
 
 		// Describe and create a render target view (RTV) descriptor heap.
 		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
@@ -179,11 +172,6 @@ namespace Alimer
 			}
 		}
 
-		ThrowIfFailed(_d3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&_commandAllocator)));
-		// Create the command list.
-		ThrowIfFailed(_d3d12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, _commandAllocator.Get(), nullptr, IID_PPV_ARGS(&_commandList)));
-		ThrowIfFailed(_commandList->Close());
-
 		return true;
 	}
 
@@ -191,8 +179,6 @@ namespace Alimer
 	{
 		if (!Parent::BeginFrame())
 			return false;
-
-		ThrowIfFailed(_commandAllocator->Reset());
 
 		return true;
 	}
@@ -202,71 +188,12 @@ namespace Alimer
 		if (!_initialized)
 			return;
 
-		{
-			ThrowIfFailed(_commandList->Reset(_commandAllocator.Get(), nullptr));
-
-			D3D12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle = _renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
-			renderTargetViewHandle.ptr += _rtvDescriptorSize * _renderTargetIndex;
-
-			D3D12_RESOURCE_BARRIER resourceBarrier;
-			resourceBarrier.Transition.pResource = _renderTargetResources[_renderTargetIndex].Get();
-			resourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-			resourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-			resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			resourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			resourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-			_commandList->ResourceBarrier(1, &resourceBarrier);
-
-			//_commandList->OMSetRenderTargets(1, &_renderTargetViewHandle, FALSE, nullptr);
-			// Record commands.
-			const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-			_commandList->ClearRenderTargetView(renderTargetViewHandle, clearColor, 0, nullptr);
-
-			// Close command list
-			_commandList->Close();
-
-			resourceBarrier.Transition.pResource = _renderTargetResources[_renderTargetIndex].Get();
-			resourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-			resourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-			resourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-			resourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-			resourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-			_commandList->ResourceBarrier(1, &resourceBarrier);
-
-			// Execute the command list.
-			ID3D12CommandList* commandLists[] = { _commandList.Get() };
-			_commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
-		}
-
 		// Present the frame.
 		const UINT presentInterval = 1;
 		ThrowIfFailed(_swapChain->Present(presentInterval, 0));
 
-		// Increment fence value
-		NextFenceValue();
-
 		_previousRenderTargetIndex = _renderTargetIndex;
 		_renderTargetIndex = _swapChain->GetCurrentBackBufferIndex();
-
-		WaitForFenceValue(_lastFenceRenderTargetWasUsed[_renderTargetIndex]);
-		_lastFenceRenderTargetWasUsed[_renderTargetIndex] = _fenceValue;
-	}
-
-	void Direct3D12Device::NextFenceValue()
-	{
-		// Signal and increment the fence value.
-		const UINT64 fence = _fenceValue;
-		ThrowIfFailed(_commandQueue->Signal(_fence.Get(), fence));
-		_fenceValue++;
-	}
-
-	void Direct3D12Device::WaitForFenceValue(UINT64 value)
-	{
-		const UINT64 lastCompletedSerial = _fence->GetCompletedValue();
-		if (lastCompletedSerial < value) {
-			ThrowIfFailed(_fence->SetEventOnCompletion(value, _fenceEvent));
-			WaitForSingleObject(_fenceEvent, INFINITE);
-		}
 	}
 
 	// Helper function for acquiring the first available hardware adapter that supports Direct3D 12.

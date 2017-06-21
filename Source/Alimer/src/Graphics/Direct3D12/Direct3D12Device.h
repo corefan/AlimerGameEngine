@@ -9,6 +9,7 @@
 
 #include "Direct3D12Prerequisites.h"
 #include "Graphics/GraphicsDevice.h"
+#include "Direct3D12CommandQueue.h"
 
 namespace Alimer
 {
@@ -25,9 +26,26 @@ namespace Alimer
 		bool BeginFrame() override;
 		void EndFrame() override;
 
+		Direct3D12CommandQueue& GetQueue(D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE_DIRECT)
+		{
+			switch (type)
+			{
+			case D3D12_COMMAND_LIST_TYPE_COMPUTE: return _computeQueue;
+			case D3D12_COMMAND_LIST_TYPE_COPY: return _copyQueue;
+			default: return _graphicsQueue;
+			}
+		}
+
+		ID3D12CommandQueue* GetCommandQueue()
+		{
+			return _graphicsQueue.GetCommandQueue();
+		}
+
 	private:
-		void NextFenceValue();
-		void WaitForFenceValue(UINT64 value);
+		void CreateNewCommandList(
+			D3D12_COMMAND_LIST_TYPE type,
+			ID3D12GraphicsCommandList** commandList,
+			ID3D12CommandAllocator** allocator);
 
 		static constexpr uint32_t FrameCount = 2;
 
@@ -35,15 +53,16 @@ namespace Alimer
 
 		ComPtr<IDXGIFactory4> _factory;
 		ComPtr<ID3D12Device> _d3d12Device;
-		ComPtr<ID3D12CommandQueue> _commandQueue;
 
 		UINT _rtvDescriptorSize;
 
-		// Sync primitives/fence
-		ComPtr<ID3D12Fence> _fence;
-		HANDLE _fenceEvent;
-		UINT64 _fenceValue = 0;
-		UINT64 _lastFenceRenderTargetWasUsed[FrameCount];
+		Direct3D12CommandQueue _graphicsQueue;
+		Direct3D12CommandQueue _computeQueue;
+		Direct3D12CommandQueue _copyQueue;
+
+		std::mutex _commandListAllocationMutex;
+		std::queue<ID3D12GraphicsCommandList*> _availableContexts[4];
+		std::vector<ID3D12GraphicsCommandList*> _contextPool[4];
 
 		// SwapChain
 		ComPtr<IDXGISwapChain3> _swapChain;
@@ -54,6 +73,5 @@ namespace Alimer
 		UINT _renderTargetIndex;
 		UINT _previousRenderTargetIndex;
 		ComPtr<ID3D12GraphicsCommandList> _commandList;
-		ComPtr<ID3D12CommandAllocator> _commandAllocator;
 	};
 }
