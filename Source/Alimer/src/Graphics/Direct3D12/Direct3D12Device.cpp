@@ -6,6 +6,7 @@
 */
 
 #include "Direct3D12Device.h"
+#include "Direct3D12CommandBuffer.h"
 
 namespace Alimer
 {
@@ -194,6 +195,73 @@ namespace Alimer
 
 		_previousRenderTargetIndex = _renderTargetIndex;
 		_renderTargetIndex = _swapChain->GetCurrentBackBufferIndex();
+	}
+
+	RefPtr<CommandBuffer> Direct3D12Device::CreateCommandBuffer()
+	{
+		return new Direct3D12CommandBuffer(this, D3D12_COMMAND_LIST_TYPE_DIRECT);
+	}
+
+	void Direct3D12Device::Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution)
+	{
+		auto d3dCommandBuffer = static_cast<Direct3D12CommandBuffer*>(commandBuffer.Get());
+		d3dCommandBuffer->Submit(waitForExecution);
+	}
+
+	void Direct3D12Device::WaitForFence(uint64_t fenceValue)
+	{
+		Direct3D12CommandQueue& producer = GetQueue((D3D12_COMMAND_LIST_TYPE)(fenceValue >> 56));
+		producer.WaitForFence(fenceValue);
+	}
+
+	ID3D12GraphicsCommandList* Direct3D12Device::AllocateCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator** allocator)
+	{
+		std::lock_guard<std::mutex> LockGuard(_commandListAllocationMutex);
+
+		std::queue<ID3D12GraphicsCommandList*>& availableContexts = _availableContexts[type];
+
+		ID3D12GraphicsCommandList* commandList = nullptr;
+		if (availableContexts.empty())
+		{
+			CreateNewCommandList(type, &commandList, allocator);
+			_contextPool[type].emplace_back(commandList);
+		}
+		else
+		{
+			// We only call Reset() on previously freed contexts.  The command list persists, but we must
+			// request a new allocator.
+			commandList = availableContexts.front();
+			availableContexts.pop();
+
+			*allocator = GetQueue(type).RequestAllocator();
+			commandList->Reset(*allocator, nullptr);
+		}
+
+		return commandList;
+	}
+
+	void Direct3D12Device::FreeCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList* usedCommandList)
+	{
+		ALIMER_ASSERT(usedCommandList != nullptr);
+		std::lock_guard<std::mutex> LockGuard(_commandListAllocationMutex);
+		_availableContexts[type].push(usedCommandList);
+	}
+
+	void Direct3D12Device::CreateNewCommandList(
+		D3D12_COMMAND_LIST_TYPE type,
+		ID3D12GraphicsCommandList** commandList,
+		ID3D12CommandAllocator** allocator)
+	{
+		ALIMER_ASSERT(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
+		switch (type)
+		{
+		case D3D12_COMMAND_LIST_TYPE_DIRECT: *allocator = _graphicsQueue.RequestAllocator(); break;
+		case D3D12_COMMAND_LIST_TYPE_BUNDLE: break;
+		case D3D12_COMMAND_LIST_TYPE_COMPUTE: *allocator = _computeQueue.RequestAllocator(); break;
+		case D3D12_COMMAND_LIST_TYPE_COPY: *allocator = _copyQueue.RequestAllocator(); break;
+		}
+
+		ThrowIfFailed(_d3d12Device->CreateCommandList(1, type, *allocator, nullptr, IID_PPV_ARGS(commandList)));
 	}
 
 	// Helper function for acquiring the first available hardware adapter that supports Direct3D 12.

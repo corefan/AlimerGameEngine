@@ -26,6 +26,22 @@ namespace Alimer
 		bool BeginFrame() override;
 		void EndFrame() override;
 
+		RefPtr<CommandBuffer> CreateCommandBuffer() override;
+		void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution) override;
+
+		void WaitForFence(uint64_t fenceValue);
+
+		ID3D12GraphicsCommandList* AllocateCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator** allocator);
+		void FreeCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12GraphicsCommandList* usedCommandList);
+
+		IDXGIFactory4* GetDXGIFactory()  const {
+			return _factory.Get();
+		}
+
+		ID3D12Device* GetD3D12Device() const {
+			return _d3d12Device.Get();
+		}
+
 		Direct3D12CommandQueue& GetQueue(D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE_DIRECT)
 		{
 			switch (type)

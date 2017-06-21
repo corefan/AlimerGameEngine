@@ -7,9 +7,10 @@
 
 #pragma once
 
+#include <set>
 #include "Core/RefCounted.h"
 #include "Core/Window.h"
-#include <set>
+#include "Graphics/CommandBuffer.h"
 
 namespace Alimer
 {
@@ -61,12 +62,22 @@ namespace Alimer
 		virtual void EndFrame();
 
 		/**
+		* Creates a command buffer.
+		*/
+		virtual RefPtr<CommandBuffer> CreateCommandBuffer() = 0;
+
+		virtual void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution = false) = 0;
+
+		/**
 		* Gets the type of this device.
 		*/
 		GraphicsDeviceType GetDeviceType() const {
 			return _deviceType;
 		}
 
+		/**
+		* Return whether the device has been initialized.
+		*/
 		bool IsInitialized() const {
 			return _initialized;
 		}

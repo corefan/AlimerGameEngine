@@ -54,7 +54,6 @@ namespace Alimer
 		HRESULT result;
 	};
 
-
 	// Helper utility converts D3D API failures into exceptions.
 	inline void ThrowIfFailed(HRESULT hr)
 	{
@@ -69,4 +68,11 @@ namespace Alimer
 		_interface->AddRef();
 		return _interface->Release();
 	}
+
+	struct Direct3D12Resource
+	{
+		ComPtr<ID3D12Resource> resource;
+		D3D12_RESOURCE_STATES supportedStates = D3D12_RESOURCE_STATE_COMMON;
+		D3D12_RESOURCE_STATES defaultState = D3D12_RESOURCE_STATE_COMMON;
+	};
 }
