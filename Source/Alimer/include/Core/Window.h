@@ -26,7 +26,7 @@ namespace Alimer
 		/**
 		* Constructor.
 		*/
-		Window(uint32_t width, uint32_t height, const String& title);
+		Window(uint32_t width, uint32_t height, const String& title, bool resizable = true, bool fullscreen = false);
 
 		/**
 		* Destructor.
@@ -61,5 +61,7 @@ namespace Alimer
 		uint32_t _width;
 		uint32_t _height;
 		String _title;
+		bool _resizable;
+		bool _fullscreen;
 	};
 }

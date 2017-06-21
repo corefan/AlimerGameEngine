@@ -54,7 +54,7 @@ namespace Alimer
 			{
 				ALIMER_LOGINFO("Creating window with {%d, %d} size.", newSettings.width, newSettings.height);
 
-				_window.reset(new Window(newSettings.width, newSettings.height, newSettings.title/*, WindowFlagBits::Shown | WindowFlagBits::Resizable*/));
+				_window.reset(new Window(newSettings.width, newSettings.height, newSettings.title, newSettings.resizable, newSettings.fullscreen));
 
 				if (newSettings.graphicsDeviceType == GraphicsDeviceType::Default)
 				{

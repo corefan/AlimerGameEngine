@@ -18,7 +18,7 @@ namespace Alimer
 		class WindowsWindow : public WindowImpl
 		{
 		public:
-			WindowsWindow(uint32_t width, uint32_t height, const String& title, bool resizable = true, bool fullscreen = false);
+			WindowsWindow(uint32_t width, uint32_t height, const String& title, bool resizable, bool fullscreen);
 			 
 			virtual ~WindowsWindow();
 
