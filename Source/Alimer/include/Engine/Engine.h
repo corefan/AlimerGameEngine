@@ -10,6 +10,7 @@
 #include "Prerequisites.h"
 #include "Engine/EngineSettings.h"
 #include "Core/Window.h"
+#include "Engine/Time.h"
 
 namespace Alimer
 {
@@ -47,6 +48,16 @@ namespace Alimer
 		void RunFrame();
 
 		/**
+		* Performs  frame update.
+		*/
+		void Update();
+
+		/**
+		* Performs render after frame update.
+		*/
+		void Render();
+
+		/**
 		* Return whether engine is running.
 		*/
 		bool IsRunning() const {
@@ -67,6 +78,13 @@ namespace Alimer
 			return _graphicsDevice.Get();
 		}
 
+		/**
+		* Gets the Time instance.
+		*/
+		Time* GetTime() const {
+			return _time.Get();
+		}
+
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Engine);
 
@@ -79,6 +97,9 @@ namespace Alimer
 
 		/// Engine main Window
 		std::unique_ptr<Window> _window;
+
+		/// Frame timer.
+		RefPtr<Time> _time;
 
 		/// Graphics device.
 		RefPtr<GraphicsDevice> _graphicsDevice;

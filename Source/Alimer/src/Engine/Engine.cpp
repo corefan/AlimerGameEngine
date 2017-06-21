@@ -18,6 +18,8 @@ namespace Alimer
 	Engine::Engine()
 		: _logger(new Logger())
 	{
+		_time = new Time();
+
 		engineInstance = this;
 	}
 
@@ -106,6 +108,7 @@ namespace Alimer
 			}
 		}
 
+		_time->ResetElapsedTime();
 		_running = true;
 		_initialized = true;
 		ALIMER_LOGINFO("Engine Initialize with success.");
@@ -123,6 +126,22 @@ namespace Alimer
 		if (!_running)
 			return;
 
+		_time->Tick(this);
+
+		if (!_time->GetFrameCount())
+			return;
+
+		// Perform actual render.
+		Render();
+	}
+
+	void Engine::Update()
+	{
+
+	}
+
+	void Engine::Render()
+	{
 		if (!_graphicsDevice->BeginFrame())
 			return;
 
