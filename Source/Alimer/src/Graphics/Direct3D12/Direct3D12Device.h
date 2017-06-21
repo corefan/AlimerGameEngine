@@ -22,9 +22,9 @@ namespace Alimer
 
 		virtual ~Direct3D12Device();
 
-		bool Initialize(Window* window) override;
-		bool BeginFrame() override;
-		void EndFrame() override;
+		bool Initialize() override;
+
+		RefPtr<SwapChain> CreateSwapChain(Window* window, uint32_t frameCount, bool verticalSync) override;
 
 		RefPtr<CommandBuffer> CreateCommandBuffer() override;
 		void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution) override;
@@ -70,8 +70,6 @@ namespace Alimer
 		ComPtr<IDXGIFactory4> _factory;
 		ComPtr<ID3D12Device> _d3d12Device;
 
-		UINT _rtvDescriptorSize;
-
 		Direct3D12CommandQueue _graphicsQueue;
 		Direct3D12CommandQueue _computeQueue;
 		Direct3D12CommandQueue _copyQueue;
@@ -79,15 +77,5 @@ namespace Alimer
 		std::mutex _commandListAllocationMutex;
 		std::queue<ID3D12GraphicsCommandList*> _availableContexts[4];
 		std::vector<ID3D12GraphicsCommandList*> _contextPool[4];
-
-		// SwapChain
-		ComPtr<IDXGISwapChain3> _swapChain;
-		ComPtr<ID3D12DescriptorHeap> _renderTargetViewHeap;
-		ComPtr<ID3D12Resource> _renderTargetResources[FrameCount];
-
-		// Frame synchronization. Updated every frame
-		UINT _renderTargetIndex;
-		UINT _previousRenderTargetIndex;
-		ComPtr<ID3D12GraphicsCommandList> _commandList;
 	};
 }

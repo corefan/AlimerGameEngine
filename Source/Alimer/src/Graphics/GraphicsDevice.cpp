@@ -19,29 +19,13 @@ namespace Alimer
 	{
 	}
 
-	bool GraphicsDevice::Initialize(Window* window)
+	bool GraphicsDevice::Initialize()
 	{
 		if (_initialized)
 			return true;
 
-		_window = window;
-
 		_initialized = true;
 		return true;
-	}
-
-	bool GraphicsDevice::BeginFrame()
-	{
-		if (!_initialized)
-			return false;
-
-		return true;
-	}
-
-	void GraphicsDevice::EndFrame()
-	{
-		if (!_initialized)
-			return;
 	}
 
 	std::set<GraphicsDeviceType> GraphicsDevice::GetAvailableDrivers()

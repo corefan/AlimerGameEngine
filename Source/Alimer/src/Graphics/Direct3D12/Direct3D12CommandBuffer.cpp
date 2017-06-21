@@ -7,6 +7,7 @@
 
 #include "Direct3D12CommandBuffer.h"
 #include "Direct3D12Device.h"
+#include "Direct3D12Framebuffer.h"
 
 namespace Alimer
 {
@@ -22,6 +23,24 @@ namespace Alimer
 
 	Direct3D12CommandBuffer::~Direct3D12CommandBuffer()
 	{
+	}
+
+	void Direct3D12CommandBuffer::BeginRenderPass(RefPtr<Framebuffer> framebuffer)
+	{
+		_boundFramebuffer = static_cast<Direct3D12Framebuffer*>(framebuffer.Get());
+		TransitionResource(_boundFramebuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+		auto renderTargetViewHandle = _boundFramebuffer->GetRenderTargetDescriptor();
+		_commandList->OMSetRenderTargets(1, &renderTargetViewHandle, FALSE, nullptr);
+
+		// Record commands.
+		const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+		_commandList->ClearRenderTargetView(renderTargetViewHandle, clearColor, 0, nullptr);
+	}
+
+	void Direct3D12CommandBuffer::EndRenderPass()
+	{
+		TransitionResource(_boundFramebuffer, D3D12_RESOURCE_STATE_COMMON, true);
 	}
 
 	void Direct3D12CommandBuffer::Submit(bool waitForExecution)

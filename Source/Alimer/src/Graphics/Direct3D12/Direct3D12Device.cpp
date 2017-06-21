@@ -7,6 +7,7 @@
 
 #include "Direct3D12Device.h"
 #include "Direct3D12CommandBuffer.h"
+#include "Direct3D12SwapChain.h"
 
 namespace Alimer
 {
@@ -87,9 +88,9 @@ namespace Alimer
 		_copyQueue.Shutdown();
 	}
 
-	bool Direct3D12Device::Initialize(Window* window)
+	bool Direct3D12Device::Initialize()
 	{
-		if (!Parent::Initialize(window))
+		if (!Parent::Initialize())
 			return false;
 
 		ComPtr<IDXGIAdapter1> hardwareAdapter;
@@ -123,78 +124,12 @@ namespace Alimer
 		_computeQueue.Initialize(_d3d12Device.Get());
 		_copyQueue.Initialize(_d3d12Device.Get());
 
-		// Describe and create the swap chain.
-		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-		swapChainDesc.BufferCount = FrameCount;
-		swapChainDesc.Width = window->GetWidth();
-		swapChainDesc.Height = window->GetHeight();
-		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDesc.SampleDesc.Count = 1;
-
-		// Swap chain needs the queue so that it can force a flush on it.
-		ComPtr<IDXGISwapChain1> swapChain;
-		ThrowIfFailed(_factory->CreateSwapChainForHwnd(
-			_graphicsQueue.GetCommandQueue(),
-			window->GetWindowHandle(),
-			&swapChainDesc,
-			nullptr,
-			nullptr,
-			&swapChain
-		));
-
-		// This sample does not support fullscreen transitions.
-		ThrowIfFailed(_factory->MakeWindowAssociation(window->GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER));
-		ThrowIfFailed(swapChain.As(&_swapChain));
-
-		// Get the initial render target and arbitrarily choose a "previous" render target that's different
-		_previousRenderTargetIndex = _renderTargetIndex = _swapChain->GetCurrentBackBufferIndex();
-		_previousRenderTargetIndex = _renderTargetIndex == 0 ? 1 : 0;
-
-		// Get descriptor heap size.
-		_rtvDescriptorSize = _d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-		// Describe and create a render target view (RTV) descriptor heap.
-		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-		rtvHeapDesc.NumDescriptors = FrameCount;
-		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		ThrowIfFailed(_d3d12Device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&_renderTargetViewHeap)));
-		_rtvDescriptorSize = _d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-		// Create a RTV for each frame.
-		{
-			D3D12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle = _renderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
-			for (uint32_t n = 0; n < FrameCount; ++n) {
-				ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&_renderTargetResources[n])));
-				_d3d12Device->CreateRenderTargetView(_renderTargetResources[n].Get(), nullptr, renderTargetViewHandle);
-				renderTargetViewHandle.ptr += _rtvDescriptorSize;
-			}
-		}
-
 		return true;
 	}
 
-	bool Direct3D12Device::BeginFrame()
+	RefPtr<SwapChain> Direct3D12Device::CreateSwapChain(Window* window, uint32_t frameCount, bool verticalSync)
 	{
-		if (!Parent::BeginFrame())
-			return false;
-
-		return true;
-	}
-
-	void Direct3D12Device::EndFrame()
-	{
-		if (!_initialized)
-			return;
-
-		// Present the frame.
-		const UINT presentInterval = 1;
-		ThrowIfFailed(_swapChain->Present(presentInterval, 0));
-
-		_previousRenderTargetIndex = _renderTargetIndex;
-		_renderTargetIndex = _swapChain->GetCurrentBackBufferIndex();
+		return new Direct3D12SwapChain(this, window, frameCount, verticalSync);
 	}
 
 	RefPtr<CommandBuffer> Direct3D12Device::CreateCommandBuffer()

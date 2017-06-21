@@ -103,5 +103,8 @@ namespace Alimer
 
 		/// Graphics device.
 		RefPtr<GraphicsDevice> _graphicsDevice;
+
+		/// Main window SwapChain
+		RefPtr<SwapChain> _swapChain;
 	};
 }

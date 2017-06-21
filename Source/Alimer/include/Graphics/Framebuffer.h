@@ -8,31 +8,27 @@
 #pragma once
 
 #include "Core/RefCounted.h"
-#include "Graphics/Framebuffer.h"
 
 namespace Alimer
 {
 	/**
-	* Command Buffer.
+	* Framebuffer.
 	*/
-	class ALIMER_API CommandBuffer : public RefCounted
+	class ALIMER_API Framebuffer : public RefCounted
 	{
 	protected:
 		/**
 		* Constructor.
 		*/
-		CommandBuffer();
+		Framebuffer();
 
 	public:
 		/**
 		* Destructor.
 		*/
-		virtual ~CommandBuffer();
-
-		virtual void BeginRenderPass(RefPtr<Framebuffer> framebuffer) = 0;
-		virtual void EndRenderPass() = 0;
+		virtual ~Framebuffer();
 
 	protected:
-		DISALLOW_COPY_AND_ASSIGN(CommandBuffer);
+		DISALLOW_COPY_AND_ASSIGN(Framebuffer);
 	};
 }

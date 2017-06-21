@@ -28,6 +28,9 @@ namespace Alimer
 		*/
 		virtual ~Direct3D12CommandBuffer();
 
+		void BeginRenderPass(RefPtr<Framebuffer> framebuffer) override;
+		void EndRenderPass() override;
+
 		void Submit(bool waitForExecution);
 
 		/**

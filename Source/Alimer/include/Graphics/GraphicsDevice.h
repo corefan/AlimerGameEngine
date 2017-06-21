@@ -9,8 +9,9 @@
 
 #include <set>
 #include "Core/RefCounted.h"
-#include "Core/Window.h"
+#include "Graphics/SwapChain.h"
 #include "Graphics/CommandBuffer.h"
+#include "Graphics/Framebuffer.h"
 
 namespace Alimer
 {
@@ -47,25 +48,22 @@ namespace Alimer
 
 		/**
 		* Initialize device with given window.
-		* @param window The window where to perform rendering.
 		*/
-		virtual bool Initialize(Window* window);
+		virtual bool Initialize();
 
 		/**
-		* Begin frame rendering. Return true if device available and can render.
+		* Creates a SwapChain.
 		*/
-		virtual bool BeginFrame();
-
-		/**
-		* End frame rendering and swap buffers.
-		*/
-		virtual void EndFrame();
+		virtual RefPtr<SwapChain> CreateSwapChain(Window* window, uint32_t frameCount = 2, bool verticalSync = true) = 0;
 
 		/**
 		* Creates a command buffer.
 		*/
 		virtual RefPtr<CommandBuffer> CreateCommandBuffer() = 0;
 
+		/**
+		* Submit given command buffer and eventually wait for its execution.
+		*/
 		virtual void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution = false) = 0;
 
 		/**
@@ -87,6 +85,5 @@ namespace Alimer
 
 		GraphicsDeviceType _deviceType;
 		bool _initialized = false;
-		Window* _window = nullptr;
 	};
 }

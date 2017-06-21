@@ -99,11 +99,14 @@ namespace Alimer
 						break;
 					}
 
-					// Initialize graphics device with our main window.
-					if (!_graphicsDevice->Initialize(_window.get()))
+					// Initialize graphics device.
+					if (!_graphicsDevice->Initialize())
 					{
 						return false;
 					}
+
+					// Create swap chain using our main window.
+					_swapChain = _graphicsDevice->CreateSwapChain(_window.get(), 2, newSettings.verticalSync);
 				}
 			}
 		}
@@ -142,11 +145,12 @@ namespace Alimer
 
 	void Engine::Render()
 	{
-		if (!_graphicsDevice->BeginFrame())
-			return;
-
 		// TODO: Perform rendering.
+		auto commandBuffer = _graphicsDevice->CreateCommandBuffer();
+		commandBuffer->BeginRenderPass(_swapChain->GetCurrentBackBuffer());
+		commandBuffer->EndRenderPass();
+		_graphicsDevice->Submit(commandBuffer);
 
-		_graphicsDevice->EndFrame();
+		_swapChain->Present();
 	}
 }

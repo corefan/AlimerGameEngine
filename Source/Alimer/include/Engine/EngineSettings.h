@@ -22,5 +22,6 @@ namespace Alimer
 		bool resizable = true;
 		bool fullscreen = false;
 		bool headless = false;
+		bool verticalSync = true;
 	};
 }
