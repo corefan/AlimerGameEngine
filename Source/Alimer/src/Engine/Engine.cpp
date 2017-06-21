@@ -86,7 +86,7 @@ namespace Alimer
 
 					case GraphicsDeviceType::Direct3D12:
 						ALIMER_LOGINFO("Using DirectX12 graphics backend.");
-						_graphicsDevice.reset(new Direct3D12Device());
+						_graphicsDevice = new Direct3D12Device();
 						break;
 					}
 

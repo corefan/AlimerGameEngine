@@ -65,7 +65,7 @@ namespace Alimer
 		* Gets the engine associated to this application.
 		*/
 		Engine* GetEngine() const {
-			return _engine.get();
+			return _engine.Get();
 		}
 
 		void SetScreenSaverEnabled(bool value)
@@ -89,7 +89,7 @@ namespace Alimer
 		DISALLOW_COPY_AND_ASSIGN(Application);
 
 		ApplicationState _state;
-		std::unique_ptr<Engine> _engine;
+		RefPtr<Engine> _engine;
 		EngineSettings _settings;
 		bool _screenSaverEnabled = true;
 	};

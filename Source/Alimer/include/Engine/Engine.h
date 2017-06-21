@@ -13,7 +13,10 @@
 
 namespace Alimer
 {
-	class ALIMER_API Engine
+	/**
+	* Core Engine class.
+	*/
+	class ALIMER_API Engine : public RefCounted
 	{
 	public:
 		/**
@@ -61,7 +64,7 @@ namespace Alimer
 		* Gets the singleton GraphicsDevice instance.
 		*/
 		GraphicsDevice* GetGraphicsDevice() const { 
-			return _graphicsDevice.get();
+			return _graphicsDevice.Get();
 		}
 
 	private:
@@ -75,6 +78,6 @@ namespace Alimer
 		std::unique_ptr<Window> _window;
 
 		/// Graphics device.
-		std::unique_ptr<GraphicsDevice> _graphicsDevice;
+		RefPtr<GraphicsDevice> _graphicsDevice;
 	};
 }
