@@ -7,17 +7,56 @@
 
 #include "Direct3D12CommandBuffer.h"
 #include "Direct3D12Device.h"
-#include "Direct3D12Framebuffer.h"
+#include "Direct3D12Texture.h"
 
 namespace Alimer
 {
+	Direct3D12RenderPassCommandEncoder::Direct3D12RenderPassCommandEncoder(Direct3D12CommandBuffer* commandBuffer, const RenderPassDescription& desc, ID3D12GraphicsCommandList* commandList)
+		: RenderPassCommandEncoder(commandBuffer)
+		, _commandList(commandList)
+	{
+		UINT numRenderTargetDescriptors = 0;
+		for (uint32_t i = 0; i < MAX_COLOR_ATTACHMENTS; ++i)
+		{
+			const RenderPassColorAttachment& colorAttachment = desc.colorAttachments[i];
+			if (colorAttachment.texture == nullptr)
+				continue;
+
+			auto d3dTexture = static_cast<Direct3D12Texture*>(colorAttachment.texture);
+			commandBuffer->TransitionResource(d3dTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
+
+			numRenderTargetDescriptors++;
+			_renderTargetDescriptors[i] = d3dTexture->GetRenderTargetDescriptor();
+
+			if (colorAttachment.loadAction == LoadAction::Clear)
+			{
+				const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+				_commandList->ClearRenderTargetView(_renderTargetDescriptors[i], clearColor, 0, nullptr);
+			}
+		}
+		
+		_commandList->OMSetRenderTargets(numRenderTargetDescriptors, _renderTargetDescriptors, FALSE, nullptr);
+	}
+
+	Direct3D12RenderPassCommandEncoder::~Direct3D12RenderPassCommandEncoder()
+	{
+		EndEncoding();
+	}
+
+	void Direct3D12RenderPassCommandEncoder::EndEncoding()
+	{
+		if (!_encoded)
+		{
+			_encoded = true;
+		}
+	}
+
 	Direct3D12CommandBuffer::Direct3D12CommandBuffer(Direct3D12Device* device, D3D12_COMMAND_LIST_TYPE commandListType)
 		: CommandBuffer()
 		, _device(device)
 		, _commandListType(commandListType)
 		, _currentAllocator(nullptr)
 	{
-		ID3D12CommandAllocator* currentAllocator;
 		_commandList = _device->AllocateCommandList(commandListType, &_currentAllocator);
 	}
 
@@ -25,23 +64,15 @@ namespace Alimer
 	{
 	}
 
-	void Direct3D12CommandBuffer::BeginRenderPass(RefPtr<Framebuffer> framebuffer)
+	RenderPassCommandEncoderPtr Direct3D12CommandBuffer::OnCreateRenderCommandEncoder(const RenderPassDescription& desc)
 	{
-		_boundFramebuffer = static_cast<Direct3D12Framebuffer*>(framebuffer.Get());
-		TransitionResource(_boundFramebuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, true);
-
-		auto renderTargetViewHandle = _boundFramebuffer->GetRenderTargetDescriptor();
-		_commandList->OMSetRenderTargets(1, &renderTargetViewHandle, FALSE, nullptr);
-
-		// Record commands.
-		const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-		_commandList->ClearRenderTargetView(renderTargetViewHandle, clearColor, 0, nullptr);
+		return new Direct3D12RenderPassCommandEncoder(this, desc, _commandList);
 	}
 
-	void Direct3D12CommandBuffer::EndRenderPass()
+	/*void Direct3D12CommandBuffer::EndRenderPass()
 	{
 		TransitionResource(_boundFramebuffer, D3D12_RESOURCE_STATE_COMMON, true);
-	}
+	}*/
 
 	void Direct3D12CommandBuffer::Submit(bool waitForExecution)
 	{

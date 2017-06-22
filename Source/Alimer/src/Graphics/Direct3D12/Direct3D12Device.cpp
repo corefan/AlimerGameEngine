@@ -187,7 +187,7 @@ namespace Alimer
 		ID3D12GraphicsCommandList** commandList,
 		ID3D12CommandAllocator** allocator)
 	{
-		ALIMER_ASSERT(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
+		ALIMER_ASSERT_MSG(type != D3D12_COMMAND_LIST_TYPE_BUNDLE, "Bundles are not yet supported");
 		switch (type)
 		{
 		case D3D12_COMMAND_LIST_TYPE_DIRECT: *allocator = _graphicsQueue.RequestAllocator(); break;

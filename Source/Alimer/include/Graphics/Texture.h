@@ -12,23 +12,25 @@
 namespace Alimer
 {
 	/**
-	* Framebuffer.
+	* Texture.
 	*/
-	class ALIMER_API Framebuffer : public RefCounted
+	class ALIMER_API Texture : public RefCounted
 	{
 	protected:
 		/**
 		* Constructor.
 		*/
-		Framebuffer();
+		Texture();
 
 	public:
 		/**
 		* Destructor.
 		*/
-		virtual ~Framebuffer();
+		virtual ~Texture();
 
 	protected:
-		DISALLOW_COPY_AND_ASSIGN(Framebuffer);
+		DISALLOW_COPY_AND_ASSIGN(Texture);
 	};
+
+	using TexturePtr = RefPtr<Texture>;
 }

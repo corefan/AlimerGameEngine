@@ -17,4 +17,10 @@ namespace Alimer
 	CommandBuffer::~CommandBuffer()
 	{
 	}
+
+	RenderPassCommandEncoderPtr CommandBuffer::CreateRenderCommandEncoder(const RenderPassDescription& desc)
+	{
+		_queueMask |= CommandQueueMask::Render;
+		return OnCreateRenderCommandEncoder(desc);
+	}
 }

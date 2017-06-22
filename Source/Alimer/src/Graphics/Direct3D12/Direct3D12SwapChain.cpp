@@ -7,7 +7,7 @@
 
 #include "Direct3D12SwapChain.h"
 #include "Direct3D12Device.h"
-#include "Direct3D12Framebuffer.h"
+#include "Direct3D12Texture.h"
 
 namespace Alimer
 {
@@ -41,7 +41,7 @@ namespace Alimer
 		ThrowIfFailed(device->GetDXGIFactory()->MakeWindowAssociation(window->GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER));
 		ThrowIfFailed(swapChain.As(&_swapChain));
 
-		_backBufferFramebuffers.resize(frameCount);
+		_backbufferTextures.resize(frameCount);
 		_currentBackBufferIndex = _swapChain->GetCurrentBackBufferIndex();
 
 		// Describe and create a render target view (RTV) descriptor heap.
@@ -60,7 +60,7 @@ namespace Alimer
 				ComPtr<ID3D12Resource> renderTargetResource;
 				ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargetResource)));
 				device->GetD3D12Device()->CreateRenderTargetView(renderTargetResource.Get(), nullptr, renderTargetViewHandle);
-				_backBufferFramebuffers[n] = new Direct3D12Framebuffer(_device, renderTargetResource, renderTargetViewHandle);
+				_backbufferTextures[n] = new Direct3D12Texture(_device, renderTargetResource, renderTargetViewHandle);
 				renderTargetViewHandle.ptr += _rtvDescriptorSize;
 			}
 		}

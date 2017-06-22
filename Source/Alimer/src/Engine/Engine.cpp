@@ -147,8 +147,15 @@ namespace Alimer
 	{
 		// TODO: Perform rendering.
 		auto commandBuffer = _graphicsDevice->CreateCommandBuffer();
-		commandBuffer->BeginRenderPass(_swapChain->GetCurrentBackBuffer());
-		commandBuffer->EndRenderPass();
+		{
+			RenderPassDescription passDesc = {};
+			passDesc.colorAttachments[0].loadAction = LoadAction::Clear;
+			passDesc.colorAttachments[0].storeAction = StoreAction::Store;
+			passDesc.colorAttachments[0].texture = _swapChain->GetCurrentBackBuffer();
+
+			auto encoder = commandBuffer->CreateRenderCommandEncoder(passDesc);
+		}
+
 		_graphicsDevice->Submit(commandBuffer);
 
 		_swapChain->Present();

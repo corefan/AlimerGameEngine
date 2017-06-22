@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Graphics/Framebuffer.h"
+#include "Graphics/Texture.h"
 #include "Core/Window.h"
 
 namespace Alimer
@@ -35,18 +35,18 @@ namespace Alimer
 			return _currentBackBufferIndex;
 		}
 
-		RefPtr<Framebuffer> GetCurrentBackBuffer() const {
-			return _backBufferFramebuffers[_currentBackBufferIndex];
+		TexturePtr GetCurrentBackBuffer() const {
+			return _backbufferTextures[_currentBackBufferIndex];
 		}
 
-		uint32_t GetFramebufferCount() const {
-			return (uint32_t)_backBufferFramebuffers.size();
+		uint32_t GetBackBuffersCount() const {
+			return (uint32_t)_backbufferTextures.size();
 		}
 
 	protected:
 		DISALLOW_COPY_AND_ASSIGN(SwapChain);
 
 		uint32_t _currentBackBufferIndex = 0;
-		std::vector<RefPtr<Framebuffer> > _backBufferFramebuffers;
+		std::vector<TexturePtr> _backbufferTextures;
 	};
 }

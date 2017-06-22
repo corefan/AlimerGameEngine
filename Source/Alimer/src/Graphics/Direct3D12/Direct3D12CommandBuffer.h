@@ -2,7 +2,7 @@
 ** Alimer - Copyright (C) Amer Koleci
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.txt', which is part of this source code package.
+** file 'LICENSE.md', which is part of this source code package.
 */
 
 #pragma once
@@ -13,7 +13,21 @@
 namespace Alimer
 {
 	class Direct3D12Device;
-	class Direct3D12Framebuffer;
+	class Direct3D12CommandBuffer;
+
+	class Direct3D12RenderPassCommandEncoder final : public RenderPassCommandEncoder
+	{
+	public:
+		Direct3D12RenderPassCommandEncoder(Direct3D12CommandBuffer* commandBuffer, const RenderPassDescription& desc, ID3D12GraphicsCommandList* commandList);
+		~Direct3D12RenderPassCommandEncoder();
+
+		void EndEncoding() override;
+
+	private:
+		ID3D12GraphicsCommandList* _commandList;
+		D3D12_CPU_DESCRIPTOR_HANDLE _renderTargetDescriptors[MAX_COLOR_ATTACHMENTS];
+		bool _encoded = false;
+	};
 
 	class Direct3D12CommandBuffer final : public CommandBuffer
 	{
@@ -28,8 +42,7 @@ namespace Alimer
 		*/
 		virtual ~Direct3D12CommandBuffer();
 
-		void BeginRenderPass(RefPtr<Framebuffer> framebuffer) override;
-		void EndRenderPass() override;
+		RenderPassCommandEncoderPtr OnCreateRenderCommandEncoder(const RenderPassDescription& desc) override;
 
 		void Submit(bool waitForExecution);
 
@@ -62,7 +75,5 @@ namespace Alimer
 		std::vector<D3D12_RESOURCE_BARRIER> _barriers;
 
 		uint64_t _fenceValue;
-
-		Direct3D12Framebuffer* _boundFramebuffer = nullptr;
 	};
 }

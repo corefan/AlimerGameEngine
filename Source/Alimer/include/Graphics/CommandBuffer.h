@@ -7,11 +7,26 @@
 
 #pragma once
 
-#include "Core/RefCounted.h"
-#include "Graphics/Framebuffer.h"
+#include "Graphics/CommandEncoder.h"
 
 namespace Alimer
 {
+	/**
+	* A bitmask indicating the kind of queue operations will require.
+	*/
+	enum class CommandQueueMask : uint32_t
+	{
+		None = 0,
+		// A queue supporting render operations (such as Draw*).
+		Render = 1 << 0,
+		// A queue supporting compute operations (such as Dispatch*).
+		Compute = 1 << 1,
+		// A queue supporting transfer operations (such as CopyBuffer).
+		Transfer = 1 << 2,
+	};
+
+	ALIMER_BITMASK(CommandQueueMask);
+
 	/**
 	* Command Buffer.
 	*/
@@ -29,10 +44,18 @@ namespace Alimer
 		*/
 		virtual ~CommandBuffer();
 
-		virtual void BeginRenderPass(RefPtr<Framebuffer> framebuffer) = 0;
-		virtual void EndRenderPass() = 0;
+		RenderPassCommandEncoderPtr CreateRenderCommandEncoder(const RenderPassDescription& desc);
+
+		// A bitmask indicating on which queue types this command buffer will execute
+		// based on the commands that were encoded into it.
+		CommandQueueMask GetQueueMask() const { return _queueMask; }
 
 	protected:
+		virtual RenderPassCommandEncoderPtr OnCreateRenderCommandEncoder(const RenderPassDescription& desc) = 0;
+
+		CommandQueueMask _queueMask = CommandQueueMask::None;
+
+	private:
 		DISALLOW_COPY_AND_ASSIGN(CommandBuffer);
 	};
 }
