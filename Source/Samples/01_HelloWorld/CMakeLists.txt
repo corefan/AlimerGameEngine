@@ -2,8 +2,8 @@
 set (TARGET_NAME 01_HelloWorld)
 
 # Define source files
-file (GLOB H_FILES *.h)
-file (GLOB CPP_FILES *.cpp)
+file (GLOB H_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+file (GLOB CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 
 set (HEADER_FILES ${H_FILES})
 set (SOURCE_FILES ${CPP_FILES})
