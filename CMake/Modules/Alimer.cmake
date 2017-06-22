@@ -203,6 +203,6 @@ if (MSVC)
 	endif()
 
 	# Disable (useless) compiler warnings on project level 
-	add_definitions( /wd4786 /wd4503 /wd4251 /wd4275 /wd4290 /wd4661 /wd4996 /wd4127 /wd4100 /wd4702 /wd4201 /wd4310)
+	add_definitions( /wd4786 /wd4503 /wd4251 /wd4275 /wd4290 /wd4661 /wd4127 /wd4100 /wd4702 /wd4201 /wd4310)
 
 endif()

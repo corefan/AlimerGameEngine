@@ -45,11 +45,35 @@ void SafeDeleteArray(T*& resource)
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
+#include <cwchar>
+#include <cwctype>
+#include <cctype>
+#include <cmath>
+#include <cstdarg>
+#include <ctime>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cstring>
 #include <array>
 #include <vector>
+#include <list>
+#include <set>
+#include <stack>
+#include <map>
+#include <unordered_map>
+#include <queue>
+#include <bitset>
+#include <algorithm>
+#include <utility>
+#include <limits>
+#include <functional>
+#include <typeinfo>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <chrono>
+#include <typeindex>
 
 namespace Alimer
 {
@@ -61,3 +85,17 @@ namespace Alimer
 	typedef std::wstringstream WStringStream;
 	typedef std::stringstream StringStream;
 }
+
+#if defined(_WIN32)
+#pragma warning( disable : 4005 )
+#pragma warning( disable : 4172 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4267 )
+#pragma warning( disable : 4302 )
+#pragma warning( disable : 4311 )
+#pragma warning( disable : 4312 )
+#pragma warning( disable : 4316 )
+#pragma warning( disable : 4390 )
+#pragma warning( disable : 4800 )
+#pragma warning( disable : 4996 )
+#endif
