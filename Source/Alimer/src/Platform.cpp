@@ -8,8 +8,11 @@
 #include "Prerequisites.h"
 #include <cctype>
 #include <cstdarg>
+
 #if defined(ALIMER_WINDOWS)
 #	include <windows.h>
+#elif defined(ALIMER_ANDROID)
+#	include <android/log.h>
 #endif
 
 namespace Alimer

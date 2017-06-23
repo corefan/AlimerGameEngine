@@ -21,13 +21,20 @@ project (Alimer)
 get_filename_component(ALIMER_ROOT_DIR "." ABSOLUTE)
 set (ALIMER_EXTERNAL_DIR "${ALIMER_ROOT_DIR}/external")
 set (ALIMER_INCLUDE_DIR "${ALIMER_ROOT_DIR}/Source/Alimer/include")
-set (ALIMER_BINARY_DIR ${ALIMER_ROOT_DIR}/build/bin/${ALIMER_PLATFORM_NAME})
-set (ALIMER_LIB_DIR ${ALIMER_ROOT_DIR}/build/lib/${ALIMER_PLATFORM_NAME})
 
 # Set CMake modules search path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake/Modules)
 # load required Alimer cmake macros
 include(Alimer REQUIRED)
+
+# Set paths
+if (ALIMER_PLATFORM_ANDROID)
+	set (ALIMER_BINARY_DIR ${ALIMER_ROOT_DIR}/build/bin/${ALIMER_PLATFORM_NAME}/${ANDROID_ABI})
+	set (ALIMER_LIB_DIR ${ALIMER_ROOT_DIR}/build/lib/${ALIMER_PLATFORM_NAME}/${ANDROID_ABI})
+else()
+	set (ALIMER_BINARY_DIR ${ALIMER_ROOT_DIR}/build/bin/${ALIMER_PLATFORM_NAME})
+	set (ALIMER_LIB_DIR ${ALIMER_ROOT_DIR}/build/lib/${ALIMER_PLATFORM_NAME})
+endif()
 
 # Version
 set(ALIMER_PRODUCT_NAME "Alimer")

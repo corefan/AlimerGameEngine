@@ -24,7 +24,7 @@
 
 #	include <Windows.h>
 #elif defined(ALIMER_ANDROID)
-#	include <android/native_window.h>
+#	include <android_native_app_glue.h>
 #endif
 
 #include "Engine/Application.h"
