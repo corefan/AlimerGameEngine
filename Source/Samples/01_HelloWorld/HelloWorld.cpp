@@ -12,7 +12,6 @@
 HelloWorld::HelloWorld()
 	: Application()
 {
-	TimeSpan span(0, 0, 30);
 }
 
 HelloWorld::~HelloWorld()

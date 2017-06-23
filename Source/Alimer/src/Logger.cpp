@@ -13,6 +13,10 @@
 #include <cstdarg>
 #include <fstream>
 
+#if defined(ALIMER_HTML5)
+#include <emscripten.h>
+#endif
+
 namespace Alimer
 {
 	static Logger* loggerInstance = 0;
@@ -134,6 +138,25 @@ namespace Alimer
 
 			va_end(args);
 		}
+
+#if defined(ALIMER_HTML5)
+		int flags = EM_LOG_CONSOLE;
+		if (level == LogLevel::Error)
+		{
+			flags |= EM_LOG_ERROR;
+		}
+		else if (level == LogLevel::Warning)
+		{
+			flags |= EM_LOG_WARN;
+		}
+		else if (level == LogLevel::Fatal)
+		{
+			flags |= EM_LOG_ERROR | EM_LOG_C_STACK | EM_LOG_JS_STACK | EM_LOG_DEMANGLE;
+		}
+		emscripten_log(flags, "%s", str);
+
+		return;
+#endif
 
 		String formattedMessage = logLevelPrefixes[(int)level];
 		formattedMessage += ": " + String(str);
