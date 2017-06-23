@@ -74,7 +74,7 @@ namespace Alimer
 			// accumulate enough tiny errors that it would drop a frame. It is better to just round 
 			// small deviations down to zero to leave things running smoothly.
 
-			if (abs(static_cast<int64_t>(timeDelta - _targetElapsedTicks)) < TicksPerSecond / 4000)
+			if (std::abs(static_cast<int64_t>(timeDelta - _targetElapsedTicks)) < TicksPerSecond / 4000)
 			{
 				timeDelta = _targetElapsedTicks;
 			}

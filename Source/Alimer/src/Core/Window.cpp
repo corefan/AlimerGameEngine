@@ -11,6 +11,9 @@
 #if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
 #include "Windows\WindowsWindow.h"
 typedef Alimer::priv::WindowsWindow PlatformWindowImpl;
+#elif defined(ALIMER_ANDROID)
+#include "Android\AndroidWindow.h"
+typedef Alimer::priv::AndroidWindow PlatformWindowImpl;
 #endif
 
 namespace Alimer
