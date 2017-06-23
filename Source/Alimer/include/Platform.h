@@ -208,6 +208,23 @@
 #	define ALIMER_API ALIMER_INTERFACE_IMPORT
 #endif
 
+// Misc
+#if defined(__COVERITY__)
+#	define ALIMER_UNUSED(x) ((void)(x))
+#elif defined( __GNUC__ )
+#	define ALIMER_UNUSED(x) ((void)sizeof((x)))
+#else
+#	define ALIMER_UNUSED(x) (/*lint --e{505,550,818,866} */(void)sizeof((x), 0))
+#endif
+// Misc
+#if defined(__COVERITY__)
+#	define ALIMER_UNUSED(x) ((void)(x))
+#elif defined( __GNUC__ )
+#	define ALIMER_UNUSED(x) ((void)sizeof((x)))
+#else
+#	define ALIMER_UNUSED(x) (/*lint --e{505,550,818,866} */(void)sizeof((x), 0))
+#endif
+
 #define ALIMER_STRINGIZE_HELPER(X) #X
 #define ALIMER_STRINGIZE(X) ALIMER_STRINGIZE_HELPER(X)
 
