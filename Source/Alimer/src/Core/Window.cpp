@@ -14,6 +14,9 @@ typedef Alimer::priv::WindowsWindow PlatformWindowImpl;
 #elif defined(ALIMER_ANDROID)
 #include "Android\AndroidWindow.h"
 typedef Alimer::priv::AndroidWindow PlatformWindowImpl;
+#elif defined(ALIMER_HTML5)
+#include "HTML5\WebWindow.h"
+typedef Alimer::priv::WebWindow PlatformWindowImpl;
 #endif
 
 namespace Alimer
