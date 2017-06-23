@@ -193,12 +193,12 @@ namespace Alimer
 #if defined(__ANDROID__)
 		struct timespec res;
 		clock_gettime(CLOCK_REALTIME, &res);
-		return 1000000000ULL * res.tv_sec + (tick_t)res.tv_nsec;
+		return 1000000000ULL * res.tv_sec + (uint64_t)res.tv_nsec;
 #elif defined(__EMSCRIPTEN__)
 		// emscripten_get_now() returns a wallclock time as a float in milliseconds (1e-3).
 		// scale it to microseconds (1e-6) and return as a tick.
-		return (tick_t)(((double)emscripten_get_now()) * 1e3);
-		//	return (tick_t)clock();
+		return (uint64_t)(((double)emscripten_get_now()) * 1e3);
+		//	return (uint64_t)clock();
 #elif defined(_WIN32)
 		LARGE_INTEGER ddwTimer;
 		QueryPerformanceCounter(&ddwTimer);
@@ -206,13 +206,13 @@ namespace Alimer
 #elif defined(_POSIX_MONOTONIC_CLOCK)
 		timespec t;
 		clock_gettime(CLOCK_MONOTONIC, &t);
-		return (tick_t)t.tv_sec * 1000 * 1000 * 1000 + (tick_t)t.tv_nsec;
+		return (uint64_t)t.tv_sec * 1000 * 1000 * 1000 + (uint64_t)t.tv_nsec;
 #elif defined(_POSIX_C_SOURCE) || defined(__APPLE__)
 		timeval t;
 		gettimeofday(&t, NULL);
-		return (tick_t)t.tv_sec * 1000 * 1000 + (tick_t)t.tv_usec;
+		return (uint64_t)t.tv_sec * 1000 * 1000 + (uint64_t)t.tv_usec;
 #else
-		return (tick_t)clock();
+		return (uint64_t)clock();
 #endif
 	}
 

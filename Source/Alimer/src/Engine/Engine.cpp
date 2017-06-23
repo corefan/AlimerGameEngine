@@ -94,9 +94,12 @@ namespace Alimer
 						break;
 
 					case GraphicsDeviceType::Direct3D12:
+#if defined(ALIMER_WINDOWS)
 						ALIMER_LOGINFO("Using DirectX12 graphics backend.");
 						_graphicsDevice = new Direct3D12Device();
-						break;
+#else
+						ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
+#endif
 					}
 
 					// Initialize graphics device.
