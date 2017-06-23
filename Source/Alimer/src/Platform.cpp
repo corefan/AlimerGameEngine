@@ -14,18 +14,18 @@
 
 namespace Alimer
 {
-	void Platform::Print(const char* text, ...)
+	void Platform::Print(const char* format, ...)
 	{
-		ALIMER_ASSERT(text);
+		ALIMER_ASSERT(format);
 		va_list argptr;
-		va_start(argptr, text);
+		va_start(argptr, format);
 
 #ifdef ALIMER_WINDOWS
-		int sz = vfprintf(stderr, text, argptr);
+		int sz = vfprintf(stderr, format, argptr);
 		if (sz > 0)
 		{
 			char* buffer(new char[sz + 1]);
-			vsprintf(buffer, text, argptr);
+			vsprintf(buffer, format, argptr);
 			buffer[sz] = 0;
 			OutputDebugStringA(buffer);
 			SafeDeleteArray(buffer);

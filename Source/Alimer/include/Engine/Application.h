@@ -22,7 +22,7 @@ namespace Alimer
 		Paused
 	};
 
-	class ALIMER_API Application
+	class ALIMER_API Application : public RefCounted
 	{
 	public:
 		/**
@@ -76,6 +76,11 @@ namespace Alimer
 
 	protected:
 		/**
+		* Setup before engine initialization and before running the main loop.
+		*/
+		virtual void Setup() { }
+
+		/**
 		* Setup after engine initialization and before running the main loop.
 		*/
 		virtual void Initialize() { }
@@ -86,11 +91,13 @@ namespace Alimer
 
 		int RunPlatformLoop();
 
-		DISALLOW_COPY_AND_ASSIGN(Application);
-
+	protected:
 		ApplicationState _state;
 		RefPtr<Engine> _engine;
 		EngineSettings _settings;
 		bool _screenSaverEnabled = true;
+
+	private:
+		DISALLOW_COPY_AND_ASSIGN(Application);
 	};
 }

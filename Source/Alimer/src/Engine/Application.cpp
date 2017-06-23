@@ -35,7 +35,7 @@ namespace Alimer
 			Shutdown();
 		}
 
-		//Setup();
+		Setup();
 		if (!_engine->Initialize(_settings))
 		{
 			Shutdown();
