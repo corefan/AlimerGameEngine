@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Prerequisites.h"
+#include "Core/WindowHandle.h"
 #include "Graphics/GraphicsDevice.h"
 
 namespace Alimer
@@ -23,5 +24,6 @@ namespace Alimer
 		bool fullscreen = false;
 		bool headless = false;
 		bool verticalSync = true;
+		WindowHandle externalWindowHandle = 0;
 	};
 }

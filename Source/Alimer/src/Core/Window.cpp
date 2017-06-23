@@ -23,13 +23,14 @@ namespace Alimer
 {
 	Window::Window(uint32_t width, uint32_t height, const String& title, bool resizable, bool fullscreen)
 		: _impl(new PlatformWindowImpl(width, height, title, resizable, fullscreen))
-		, _width(width)
-		, _height(height)
-		, _title(title)
-		, _resizable(resizable)
-		, _fullscreen(fullscreen)
 	{
+		_impl->GetSize(&_width, &_height);
+	}
 
+	Window::Window(WindowHandle handle)
+		: _impl(new PlatformWindowImpl(handle))
+	{
+		_impl->GetSize(&_width, &_height);
 	}
 
 	Window::~Window()
@@ -43,5 +44,15 @@ namespace Alimer
 	WindowHandle Window::GetWindowHandle() const
 	{
 		return _impl ? _impl->GetWindowHandle() : 0;
+	}
+
+	const String& Window::GetTitle() const
+	{
+		return _impl->GetTitle();
+	}
+
+	void Window::SetTitle(const String& title)
+	{
+		_impl->SetTitle(title);
 	}
 }

@@ -29,6 +29,11 @@ namespace Alimer
 		Window(uint32_t width, uint32_t height, const String& title, bool resizable = true, bool fullscreen = false);
 
 		/**
+		* Constructor.
+		*/
+		explicit Window(WindowHandle handle);
+
+		/**
 		* Destructor.
 		*/
 		virtual ~Window();
@@ -52,6 +57,16 @@ namespace Alimer
 			return _height;
 		}
 
+		/**
+		* Get the window title.
+		*/
+		const String& GetTitle() const;
+
+		/**
+		* Set the window title.
+		*/
+		void SetTitle(const String& title);
+
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Window);
 
@@ -60,8 +75,5 @@ namespace Alimer
 
 		uint32_t _width;
 		uint32_t _height;
-		String _title;
-		bool _resizable;
-		bool _fullscreen;
 	};
 }

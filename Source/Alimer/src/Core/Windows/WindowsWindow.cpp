@@ -20,7 +20,6 @@ namespace Alimer
 		static BOOL(WINAPI* registerTouchWindow)(HWND, ULONG) = nullptr;
 		static BOOL(WINAPI* getTouchInputInfo)(HTOUCHINPUT, UINT, PTOUCHINPUT, int) = nullptr;
 		static BOOL(WINAPI* closeTouchInputHandle)(HTOUCHINPUT) = nullptr;
-		static LRESULT CALLBACK WndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		static bool functionsInitialized = false;
 
 		static void CheckFunctionsInit()
@@ -87,9 +86,221 @@ namespace Alimer
 			}
 		}
 
-		LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		WindowsWindow::WindowsWindow(uint32_t width, uint32_t height, const String& title, bool resizable, bool fullscreen)
 		{
-			WindowsWindow* window = (WindowsWindow*)GetPropW(hwnd, L"ALIMER");
+			CheckFunctionsInit();
+
+			if (windowCount == 0)
+			{
+				WNDCLASSEXW wc;
+				memset(&wc, 0, sizeof(wc));
+				wc.cbSize = sizeof(wc);
+				wc.style = CS_HREDRAW | CS_VREDRAW;
+				wc.lpfnWndProc = &WindowsWindow::GlobalWndProc;
+				wc.hInstance = GetModuleHandleW(nullptr);
+				wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+				wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+				wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+				wc.lpszClassName = _ALIMER__WNDCLASSNAME;
+				wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
+
+				if (!RegisterClassExW(&wc))
+				{
+					ALIMER_ERROR("Could not register window class!");
+				}
+			}
+
+			uint32_t screenWidth = GetSystemMetrics(SM_CXSCREEN);
+			uint32_t screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+			// TODO: Manage fullscreen
+			DWORD windowWindowedStyle = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_BORDER | WS_DLGFRAME | WS_THICKFRAME | WS_GROUP | WS_TABSTOP;
+
+			if (resizable)
+			{
+				windowWindowedStyle |= WS_SIZEBOX | WS_MAXIMIZEBOX;
+			}
+
+			DWORD windowFullscreenStyle = WS_CLIPSIBLINGS | WS_GROUP | WS_TABSTOP;
+
+			DWORD windowStyle = 0;
+			DWORD dwExStyle = WS_EX_APPWINDOW;
+
+			if (fullscreen)
+			{
+				windowStyle = windowFullscreenStyle;
+			}
+			else
+			{
+				windowStyle = windowWindowedStyle;
+				dwExStyle |= WS_EX_WINDOWEDGE;
+			}
+
+			LONG x = 0;
+			LONG y = 0;
+			if (fullscreen)
+			{
+				width = screenWidth;
+				height = screenHeight;
+			}
+			else
+			{
+				x = (LONG)((screenWidth - width) / 2);
+				y = (LONG)((screenHeight - height) / 2);
+			}
+
+			RECT rect = { 0, 0, (LONG)width, (LONG)height };
+			AdjustWindowRectEx(&rect, windowStyle, FALSE, dwExStyle);
+
+			// Create a window.
+			_title = title;
+			std::wstring titleString = std::wstring(title.begin(), title.end());
+
+			HWND hwnd = CreateWindowExW(
+				WS_EX_APPWINDOW,
+				_ALIMER__WNDCLASSNAME,
+				titleString.c_str(),
+				windowStyle,
+				x,
+				y,
+				rect.right - rect.left,
+				rect.bottom - rect.top,
+				nullptr,
+				nullptr,
+				GetModuleHandleW(nullptr),
+				this);
+
+			if (hwnd == nullptr)
+			{
+				ALIMER_LOGERROR("Windows: Cannot create window");
+				return;
+			}
+
+			_handle = hwnd;
+			windowCount++;
+
+			// Enable touch input if available
+			if (registerTouchWindow)
+			{
+				if (!registerTouchWindow(hwnd, TWF_FINETOUCH | TWF_WANTPALM))
+				{
+					ALIMER_LOGWARNING("Failed to enable touch for window");
+				}
+			}
+
+			_monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+			// TODO: Resolve content scale from DPI
+			/*if (__win32Data.shcoreDLL &&
+			__win32Data.GetDpiForMonitor)
+			{
+			UINT dpiX = 0;
+			UINT dpiY = 0;
+
+			if (SUCCEEDED(__win32Data.GetDpiForMonitor(_monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY)))
+			{
+			_contentScale = static_cast<float>(dpiX) / DipsPerInch;
+			}
+			}*/
+
+			if (fullscreen)
+			{
+				//SwitchFullscreen(fullscreen);
+			}
+
+			// Show the window.
+			ShowWindow(hwnd, SW_SHOW);
+		}
+
+		WindowsWindow::WindowsWindow(WindowHandle handle)
+			: _handle(handle)
+		{
+			CheckFunctionsInit();
+
+			// Enable touch input if available
+			if (registerTouchWindow)
+			{
+				if (!registerTouchWindow(_handle, TWF_FINETOUCH | TWF_WANTPALM))
+				{
+					ALIMER_LOGWARNING("Failed to enable touch for window");
+				}
+			}
+
+			_monitor = MonitorFromWindow(_handle, MONITOR_DEFAULTTONEAREST);
+
+			/* Query the title from the existing window */
+			int titleLength = GetWindowTextLengthA(_handle);
+			char* title = new char[titleLength + 1];
+			titleLength = GetWindowTextA(_handle, title, titleLength);
+
+			if (titleLength > 0) {
+				_title = title;
+			}
+
+			// We change the event procedure of the control (it is important to save the old one)
+			SetWindowLongPtrW(_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+			_callback = SetWindowLongPtrW(_handle, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&WindowsWindow::GlobalWndProc));
+		}
+
+		WindowsWindow::~WindowsWindow()
+		{
+			if (!_callback)
+			{
+				if (_handle)
+				{
+					DestroyWindow(_handle);
+					_handle = nullptr;
+				}
+
+				// Decrement the window count
+				windowCount--;
+
+				// Unregister window class if we were the last window
+				if (windowCount == 0)
+				{
+					UnregisterClassW(_ALIMER__WNDCLASSNAME, GetModuleHandleW(nullptr));
+				}
+			}
+			else
+			{
+				// The window is external: remove the hook on its message callback
+				SetWindowLongPtrW(_handle, GWLP_WNDPROC, _callback);
+			}
+		}
+
+		WindowHandle WindowsWindow::GetWindowHandle() const
+		{
+			return _handle;
+		}
+
+		void WindowsWindow::GetSize(uint32_t* width, uint32_t* height) const
+		{
+			RECT rect;
+			GetClientRect(_handle, &rect);
+
+			*width = static_cast<std::uint32_t>(rect.right - rect.left);
+			*height = static_cast<std::uint32_t>(rect.bottom - rect.top);
+		}
+
+		void WindowsWindow::SetTitle(const String& title)
+		{
+			std::wstring titleString = std::wstring(title.begin(), title.end());
+			SetWindowTextW(_handle, titleString.c_str());
+		}
+
+		LRESULT CALLBACK WindowsWindow::GlobalWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			// Associate handle and window instance when the creation message is received
+			if (msg == WM_CREATE)
+			{
+				// Get WindowsWindow instance (it was passed as the last argument of CreateWindow)
+				LONG_PTR window = (LONG_PTR)reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams;
+
+				// Set as the "user data" parameter of the window
+				SetWindowLongPtrW(hwnd, GWLP_USERDATA, window);
+			}
+
+			WindowsWindow* window = hwnd ? reinterpret_cast<WindowsWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA)) : NULL;
 			if (!window)
 			{
 				switch (msg)
@@ -124,10 +335,6 @@ namespace Alimer
 
 			switch (msg)
 			{
-			case WM_CREATE:
-				::UpdateWindow(hwnd);
-				break;
-
 			case WM_KEYDOWN:
 			case WM_SYSKEYDOWN:
 			case WM_KEYUP:
@@ -224,170 +431,12 @@ namespace Alimer
 				break;
 			}
 
+			if (window->_callback)
+			{
+				return CallWindowProcW(reinterpret_cast<WNDPROC>(window->_callback), hwnd, msg, wParam, lParam);
+			}
+
 			return DefWindowProcW(hwnd, msg, wParam, lParam);
-		}
-
-		WindowsWindow::WindowsWindow(uint32_t width, uint32_t height, const String& title, bool resizable, bool fullscreen)
-		{
-			CheckFunctionsInit();
-
-			// Get the instance of this application.
-			auto hInstance = GetModuleHandleW(nullptr);
-
-			if (windowCount == 0)
-			{
-				WNDCLASSEXW wc;
-				memset(&wc, 0, sizeof(wc));
-				wc.cbSize = sizeof(wc);
-				wc.style = CS_HREDRAW | CS_VREDRAW;
-				wc.lpfnWndProc = WndProc;
-				wc.hInstance = hInstance;
-				wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-				wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-				wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-				wc.lpszClassName = _ALIMER__WNDCLASSNAME;
-				wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-
-				if (!RegisterClassExW(&wc))
-				{
-					ALIMER_ERROR("Could not register window class!");
-				}
-			}
-
-			uint32_t screenWidth = GetSystemMetrics(SM_CXSCREEN);
-			uint32_t screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-			// TODO: Manage fullscreen
-			DWORD windowWindowedStyle = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_BORDER | WS_DLGFRAME | WS_THICKFRAME | WS_GROUP | WS_TABSTOP;
-
-			if (resizable)
-			{
-				windowWindowedStyle |= WS_SIZEBOX | WS_MAXIMIZEBOX;
-			}
-
-			DWORD windowFullscreenStyle = WS_CLIPSIBLINGS | WS_GROUP | WS_TABSTOP;
-
-			DWORD windowStyle = 0;
-			DWORD dwExStyle = WS_EX_APPWINDOW;
-
-			if (fullscreen)
-			{
-				windowStyle = windowFullscreenStyle;
-			}
-			else
-			{
-				windowStyle = windowWindowedStyle;
-				dwExStyle |= WS_EX_WINDOWEDGE;
-			}
-
-			LONG x = 0;
-			LONG y = 0;
-			if (fullscreen)
-			{
-				width = screenWidth;
-				height = screenHeight;
-			}
-			else
-			{
-				x = (LONG)((screenWidth - width) / 2);
-				y = (LONG)((screenHeight - height) / 2);
-			}
-
-			RECT rect = { 0, 0, (LONG)width, (LONG)height };
-			AdjustWindowRectEx(&rect, windowStyle, FALSE, dwExStyle);
-
-			// Create a window.
-			std::wstring titleString = std::wstring(title.begin(), title.end());
-
-			HWND hwnd = CreateWindowExW(
-				WS_EX_APPWINDOW,
-				_ALIMER__WNDCLASSNAME,
-				titleString.c_str(),
-				windowStyle,
-				x,
-				y,
-				rect.right - rect.left,
-				rect.bottom - rect.top,
-				nullptr,
-				nullptr,
-				hInstance,
-				nullptr);
-
-			if (hwnd == nullptr)
-			{
-				ALIMER_LOGERROR("Windows: Cannot create window");
-				return;
-			}
-
-			_hwnd = hwnd;
-			windowCount++;
-
-			// Enable touch input if available
-			if (registerTouchWindow)
-			{
-				if (!registerTouchWindow(hwnd, TWF_FINETOUCH | TWF_WANTPALM))
-				{
-					ALIMER_LOGWARNING("Failed to enable touch for window");
-				}
-			}
-
-			_monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-
-			// TODO: Resolve content scale from DPI
-			/*if (__win32Data.shcoreDLL &&
-			__win32Data.GetDpiForMonitor)
-			{
-			UINT dpiX = 0;
-			UINT dpiY = 0;
-
-			if (SUCCEEDED(__win32Data.GetDpiForMonitor(_monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY)))
-			{
-			_contentScale = static_cast<float>(dpiX) / DipsPerInch;
-			}
-			}*/
-
-			if (fullscreen)
-			{
-				//SwitchFullscreen(fullscreen);
-			}
-
-			_hdc = ::GetDC(hwnd);
-
-			//_location = Vector2((float)windowRect.left, (float)windowRect.top);
-			SetPropW(hwnd, L"ALIMER", this);
-
-			// Show the window.
-			ShowWindow(hwnd, SW_SHOW);
-		}
-
-		WindowsWindow::~WindowsWindow()
-		{
-			if (_hwnd)
-			{
-				if (_hdc)
-				{
-					ReleaseDC(_hwnd, _hdc);
-					_hdc = nullptr;
-				}
-
-				RemovePropW(_hwnd, L"ALIMER");
-				DestroyWindow(_hwnd);
-				_hwnd = nullptr;
-
-				// Decrement the window count
-				windowCount--;
-			}
-
-			// Unregister window class if we were the last window
-			if (windowCount == 0)
-			{
-				UnregisterClassW(_ALIMER__WNDCLASSNAME, GetModuleHandleW(nullptr));
-			}
-		}
-
-		WindowHandle WindowsWindow::GetWindowHandle() const
-		{
-			return _hwnd;
 		}
 	}
 }

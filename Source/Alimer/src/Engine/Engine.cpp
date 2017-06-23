@@ -55,11 +55,11 @@ namespace Alimer
 		// Initialize graphics & audio output
 		if (!newSettings.headless)
 		{
-			/*if (newSettings.externalHandle)
+			if (newSettings.externalWindowHandle)
 			{
-				_window.reset(new Window(newSettings.externalHandle, newSettings.externalConnection));
+				_window.reset(new Window(newSettings.externalWindowHandle));
 			}
-			else*/
+			else
 			{
 				ALIMER_LOGINFO("Creating window with {%d, %d} size.", newSettings.width, newSettings.height);
 

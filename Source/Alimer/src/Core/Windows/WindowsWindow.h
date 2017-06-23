@@ -19,17 +19,23 @@ namespace Alimer
 		{
 		public:
 			WindowsWindow(uint32_t width, uint32_t height, const String& title, bool resizable, bool fullscreen);
-			 
+			WindowsWindow(WindowHandle handle);
+
 			virtual ~WindowsWindow();
 
 			WindowHandle GetWindowHandle() const override;
+			void GetSize(uint32_t* width, uint32_t* height) const override;
+
+			void SetTitle(const String& title) override;
 
 		private:
-			DISALLOW_COPY_AND_ASSIGN(WindowsWindow);
+			static LRESULT CALLBACK GlobalWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-			HWND _hwnd = nullptr;
-			HDC _hdc = nullptr;
+		private:
+			HWND _handle = nullptr;
 			HMONITOR _monitor = nullptr;
+			/// Stores the original event callback function of the control
+			LONG_PTR _callback = 0;
 		};
 	}
 }
