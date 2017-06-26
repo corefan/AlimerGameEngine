@@ -72,7 +72,7 @@ namespace Alimer
 		}
 
 		/**
-		* Gets the singleton GraphicsDevice instance.
+		* Gets the GraphicsDevice instance.
 		*/
 		GraphicsDevice* GetGraphicsDevice() const { 
 			return _graphicsDevice.Get();

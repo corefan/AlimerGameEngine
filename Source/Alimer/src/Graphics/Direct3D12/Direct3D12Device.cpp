@@ -19,7 +19,7 @@ namespace Alimer
 	{
 		UINT dxgiFactoryFlags = 0;
 
-#if USE_D3D_DYNAMIC_LIB
+#if WINDOWS_USE_DYNAMIC_LIB
 		HMODULE dxgiDLL = ::LoadLibraryExW(L"dxgi.DLL", nullptr, 0x00000800 /* LOAD_LIBRARY_SEARCH_SYSTEM32 */);
 		HMODULE d3d12DLL = ::LoadLibraryExW(L"d3d12.DLL", nullptr, 0x00000800 /* LOAD_LIBRARY_SEARCH_SYSTEM32 */);
 
