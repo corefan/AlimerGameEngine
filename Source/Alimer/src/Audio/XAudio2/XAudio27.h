@@ -41,4 +41,6 @@ HRESULT IXAudio27GetDeviceDetails(IXAudio2* pXAudio2, UINT32 Index, __out XAUDIO
 HRESULT IXAudio27StartEngine(IXAudio2* pXAudio2);
 void IXAudio27StopEngine(IXAudio2* pXAudio2);
 
+HRESULT IXAudio27RegisterForCallbacks(IXAudio2* pXAudio2, __in IXAudio2EngineCallback* pCallback);
+void IXAudio27UnregisterForCallbacks(IXAudio2* pXAudio2, __in IXAudio2EngineCallback* pCallback);
 #endif

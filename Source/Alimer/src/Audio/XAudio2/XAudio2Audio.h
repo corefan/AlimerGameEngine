@@ -20,6 +20,40 @@ namespace Alimer
 		virtual ~XAudio2Audio();
 
 		bool Initialize() override;
+		void Pause() override;
+		void Resume() override;
+
+	private:
+		struct AudioEngineCallback : public IXAudio2EngineCallback
+		{
+			AudioEngineCallback()
+			{
+				criticalError.reset(CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE));
+				if (!criticalError)
+				{
+					throw std::exception("CreateEvent");
+				}
+			};
+
+			virtual ~AudioEngineCallback()
+			{
+			}
+
+			STDMETHOD_(void, OnProcessingPassStart) () override {}
+			STDMETHOD_(void, OnProcessingPassEnd)() override {}
+
+			STDMETHOD_(void, OnCriticalError) (THIS_ HRESULT error)
+			{
+#ifndef _DEBUG
+				UNREFERENCED_PARAMETER(error);
+#endif
+				
+				ALIMER_LOGERROR("XAudio2 engine encountered critical error (%08X)\n", error);
+				SetEvent(criticalError.get());
+			}
+
+			ScopedHandle criticalError;
+		};
 
 	private:
 		ComPtr<IXAudio2> xAudio2;
@@ -30,6 +64,9 @@ namespace Alimer
 		uint32_t _masterChannelMask = 0;
 		uint32_t _masterChannels = 0;
 		uint32_t _masterRate = 0;
+		bool _criticalError = false;
+
+		AudioEngineCallback _engineCallback;
 
 #if WINDOWS_USE_DYNAMIC_LIB
 		HMODULE _xAudioDLL = nullptr;

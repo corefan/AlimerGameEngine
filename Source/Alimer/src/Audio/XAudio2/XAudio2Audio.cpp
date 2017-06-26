@@ -11,9 +11,10 @@
 #	include "XAudio27.h"
 
 typedef HRESULT(__stdcall* PFN_XAudioCreate)(_Outptr_ IXAudio2** ppXAudio2, UINT32 Flags, XAUDIO2_PROCESSOR XAudio2Processor);
-typedef HRESULT(_cdecl * PFN_X3DAudioInitialize)(UINT32 SpeakerChannelMask, FLOAT32 SpeedOfSound, _Out_writes_bytes_(X3DAUDIO_HANDLE_BYTESIZE) X3DAUDIO_HANDLE Instance);
+typedef void(_cdecl * PFN_X3DAudioInitialize)(UINT32 SpeakerChannelMask, FLOAT32 SpeedOfSound, _Out_writes_bytes_(X3DAUDIO_HANDLE_BYTESIZE) X3DAUDIO_HANDLE Instance);
+typedef HRESULT(_cdecl * PFN_X3DAudioInitializeWithHR)(UINT32 SpeakerChannelMask, FLOAT32 SpeedOfSound, _Out_writes_bytes_(X3DAUDIO_HANDLE_BYTESIZE) X3DAUDIO_HANDLE Instance);
 typedef void(_cdecl * PFN_X3DAudioCalculate)(_In_reads_bytes_(X3DAUDIO_HANDLE_BYTESIZE) const X3DAUDIO_HANDLE Instance, _In_ const X3DAUDIO_LISTENER* pListener, _In_ const X3DAUDIO_EMITTER* pEmitter, UINT32 Flags, _Inout_ X3DAUDIO_DSP_SETTINGS* pDSPSettings);
-PFN_X3DAudioInitialize X3DAudioInitializeFunc;
+
 PFN_X3DAudioCalculate X3DAudioCalculateFunc;
 #endif
 
@@ -53,11 +54,12 @@ namespace Alimer
 		{
 			if (_usingXAudio27)
 			{
+				IXAudio27UnregisterForCallbacks(xAudio2.Get(), &_engineCallback);
 				IXAudio27StopEngine(xAudio2.Get());
 			}
 			else
 			{
-				//xAudio2->UnregisterForCallbacks(&_engineCallback);
+				xAudio2->UnregisterForCallbacks(&_engineCallback);
 				xAudio2->StopEngine();
 			}
 		}
@@ -65,7 +67,7 @@ namespace Alimer
 		SAFE_DESTROY_VOICE(_reverbVoice);
 		SAFE_DESTROY_VOICE(_masterVoice);
 		_masterChannelMask = _masterChannels = _masterRate = 0;
-		//_criticalError = false;
+		_criticalError = false;
 
 		xAudio2.Reset();
 
@@ -149,6 +151,13 @@ namespace Alimer
 		const bool enableDebug = false;
 		if (!_xAudioDLL || forceUseXAudio27)
 		{
+			// Free old library if we are forcing version 2.7
+			if (_xAudioDLL)
+			{
+				FreeLibrary(_xAudioDLL);
+				_xAudioDLL = nullptr;
+			}
+
 			// Windows 7
 			apiMinorVersion = 7;
 			_usingXAudio27 = true;
@@ -177,13 +186,9 @@ namespace Alimer
 			hr = XAudio2CreateFunc(xAudio2.ReleaseAndGetAddressOf(), 0, XAUDIO2_DEFAULT_PROCESSOR);
 		}
 
-		X3DAudioInitializeFunc = (PFN_X3DAudioInitialize)GetProcAddress(_x3DAudioDLL, "X3DAudioInitialize");
-		if (!X3DAudioInitializeFunc)
-			return S_FALSE;
-
 		X3DAudioCalculateFunc = (PFN_X3DAudioCalculate)GetProcAddress(_x3DAudioDLL, "X3DAudioCalculate");
 		if (!X3DAudioCalculateFunc)
-			return S_FALSE;
+			return false;
 
 #else
 		hr = XAudio2Create(&xaudio2, eflags);
@@ -221,12 +226,19 @@ namespace Alimer
 			}
 		}
 
-		/*hr = xAudio2->RegisterForCallbacks(&mEngineCallback);
+#if WINDOWS_USE_DYNAMIC_LIB
+		if (_usingXAudio27)
+			hr = IXAudio27RegisterForCallbacks(xAudio2.Get(), &_engineCallback);
+		else
+			hr = xAudio2->RegisterForCallbacks(&_engineCallback);
+#else
+		hr = xAudio2->RegisterForCallbacks(&_engineCallback);
+#endif
 		if (FAILED(hr))
 		{
-		xAudio2.Reset();
-		return hr;
-		}*/
+			xAudio2.Reset();
+			return hr;
+		}
 
 		const wchar_t* deviceId = nullptr;
 		if (!_usingXAudio27)
@@ -349,9 +361,27 @@ namespace Alimer
 		const float SPEEDOFSOUND = X3DAUDIO_SPEED_OF_SOUND;
 
 #if WINDOWS_USE_DYNAMIC_LIB
-		hr = X3DAudioInitializeFunc(_masterChannelMask, SPEEDOFSOUND, _X3DAudio);
+		if (_usingXAudio27)
+		{
+			PFN_X3DAudioInitialize X3DAudioInitializeFunc = (PFN_X3DAudioInitialize)GetProcAddress(_x3DAudioDLL, "X3DAudioInitialize");
+			if (!X3DAudioInitializeFunc)
+				return S_FALSE;
+
+			X3DAudioInitializeFunc(_masterChannelMask, SPEEDOFSOUND, _X3DAudio);
+			hr = S_OK;
+		}
+		else
+		{
+			PFN_X3DAudioInitializeWithHR X3DAudioInitializeFunc = (PFN_X3DAudioInitializeWithHR)GetProcAddress(_x3DAudioDLL, "X3DAudioInitialize");
+			if (!X3DAudioInitializeFunc)
+				return S_FALSE;
+
+			hr = X3DAudioInitializeFunc(_masterChannelMask, SPEEDOFSOUND, _X3DAudio);
+		}
 #else
 		hr = X3DAudioInitialize(_masterChannelMask, SPEEDOFSOUND, _X3DAudio);
+#endif
+
 		if (FAILED(hr))
 		{
 			SAFE_DESTROY_VOICE(_reverbVoice);
@@ -361,8 +391,43 @@ namespace Alimer
 			xAudio2.Reset();
 			return false;
 		}
-#endif
 
 		return true;
+	}
+
+	void XAudio2Audio::Pause()
+	{
+		if (!xAudio2)
+			return;
+
+		if (_usingXAudio27)
+		{
+			IXAudio27StopEngine(xAudio2.Get());
+		}
+		else
+		{
+			xAudio2->StopEngine();
+		}
+
+		Audio::Pause();
+	}
+
+	void XAudio2Audio::Resume()
+	{
+		if (!xAudio2)
+			return;
+
+		if (_usingXAudio27)
+		{
+			ThrowIfFailed(
+				IXAudio27StartEngine(xAudio2.Get())
+				);
+		}
+		else
+		{
+			ThrowIfFailed(xAudio2->StartEngine());
+		}
+
+		Audio::Resume();
 	}
 }
