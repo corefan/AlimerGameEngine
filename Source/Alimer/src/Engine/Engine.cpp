@@ -9,6 +9,7 @@
 
 #if defined(_MSC_VER)
 #include "Graphics/Direct3D12/Direct3D12Device.h"
+#include "Audio/XAudio2/XAudio2Audio.h"
 #endif
 
 namespace Alimer
@@ -141,7 +142,7 @@ namespace Alimer
 #if defined(_MSC_VER)
 			case AudioDeviceType::XAudio2:
 				ALIMER_LOGINFO("Using XAudio 2 audio backend.");
-				//_audio = new XAudio2Audio();
+				_audio = new XAudio2Audio();
 				break;
 #endif
 
@@ -151,10 +152,10 @@ namespace Alimer
 			}
 
 			// Now initialize audio.
-			/*if (!_audio->Initialize())
+			if (!_audio->Initialize())
 			{
 				return false;
-			}*/
+			}
 		}
 
 		_time->ResetElapsedTime();

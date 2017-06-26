@@ -40,13 +40,6 @@ namespace Alimer
 
 	int Application::RunPlatformLoop()
 	{
-		HRESULT hr = AlimerCoInitialize();
-		if (FAILED(hr))
-		{
-			ALIMER_LOGERROR("Failed to initialize COM");
-			return EXIT_FAILURE;
-		}
-
 #ifdef _DEBUG
 		if (!IsDebuggerPresent() && !AllocConsole())
 		{
