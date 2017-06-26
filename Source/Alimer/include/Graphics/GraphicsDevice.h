@@ -46,7 +46,7 @@ namespace Alimer
 		static std::set<GraphicsDeviceType> GetAvailableDrivers();
 
 		/**
-		* Initialize device with given window.
+		* Initialize the device.
 		*/
 		virtual bool Initialize();
 
@@ -80,9 +80,10 @@ namespace Alimer
 		}
 
 	protected:
-		DISALLOW_COPY_AND_ASSIGN(GraphicsDevice);
-
 		GraphicsDeviceType _deviceType;
 		bool _initialized = false;
+
+	private:
+		DISALLOW_COPY_AND_ASSIGN(GraphicsDevice);
 	};
 }
