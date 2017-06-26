@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Prerequisites.h"
+#include "Utils/CommandLine.h"
 
 #if defined(ALIMER_WINDOWS) 
 #	ifndef STRICT
@@ -36,6 +37,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 		UNREFERENCED_PARAMETER(hPrevInstance); \
 		UNREFERENCED_PARAMETER(lpCmdLine); \
 		UNREFERENCED_PARAMETER(nCmdShow); \
+		Alimer::ParseArguments(::GetCommandLineW()); \
 		std::unique_ptr<appClass> application(new appClass()); \
 		return application->Run(); \
 }
@@ -58,6 +60,7 @@ void android_main(struct android_app* app_) { \
 #else
 #define ALIMER_MAIN(appClass) \
 int main(int argc, char** argv) { \
+	Alimer::ParseArguments(argc, argv); \
 	std::unique_ptr<appClass> application(new appClass()); \
 	return application->Run(); \
 }
