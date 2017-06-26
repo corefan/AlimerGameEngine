@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <set>
 #include "Core/RefCounted.h"
 #include "Graphics/SwapChain.h"
 #include "Graphics/CommandBuffer.h"

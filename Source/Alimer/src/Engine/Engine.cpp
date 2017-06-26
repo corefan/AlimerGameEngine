@@ -7,7 +7,7 @@
 
 #include "Engine/Engine.h"
 
-#if defined(ALIMER_WINDOWS)
+#if defined(_MSC_VER)
 #include "Graphics/Direct3D12/Direct3D12Device.h"
 #endif
 
@@ -52,7 +52,7 @@ namespace Alimer
 
 		ALIMER_LOGINFO("Initializing Alimer Engine %s...", ALIMER_VERSION_STR);
 
-		// Initialize graphics & audio output
+		// Initialize window and graphics backend.
 		if (!newSettings.headless)
 		{
 			if (newSettings.externalWindowHandle)
@@ -112,6 +112,49 @@ namespace Alimer
 					_swapChain = _graphicsDevice->CreateSwapChain(_window.get(), 2, newSettings.verticalSync);
 				}
 			}
+		}
+
+		// Initialize audio backend.
+		if (newSettings.audioDeviceType == AudioDeviceType::Default)
+		{
+			auto availableDrivers = Audio::GetAvailableDrivers();
+
+			if (availableDrivers.find(AudioDeviceType::OpenAL) != availableDrivers.end())
+			{
+				newSettings.audioDeviceType = AudioDeviceType::OpenAL;
+			}
+			else if (availableDrivers.find(AudioDeviceType::XAudio2) != availableDrivers.end())
+			{
+				newSettings.audioDeviceType = AudioDeviceType::XAudio2;
+			}
+			else
+			{
+				newSettings.audioDeviceType = AudioDeviceType::Empty;
+			}
+
+			switch (newSettings.audioDeviceType)
+			{
+			case AudioDeviceType::Empty:
+				ALIMER_LOGINFO("Using empty audio backend.");
+				break;
+
+#if defined(_MSC_VER)
+			case AudioDeviceType::XAudio2:
+				ALIMER_LOGINFO("Using XAudio 2 audio backend.");
+				//_audio = new XAudio2Audio();
+				break;
+#endif
+
+			default:
+				ALIMER_LOGERROR("Unsupported audio backend");
+				return false;
+			}
+
+			// Now initialize audio.
+			/*if (!_audio->Initialize())
+			{
+				return false;
+			}*/
 		}
 
 		_time->ResetElapsedTime();

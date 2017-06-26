@@ -85,6 +85,13 @@ namespace Alimer
 			return _time.Get();
 		}
 
+		/**
+		* Gets the Audio instance.
+		*/
+		Audio* GetAudio() const {
+			return _audio.Get();
+		}
+
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Engine);
 
@@ -106,5 +113,8 @@ namespace Alimer
 
 		/// Main window SwapChain
 		RefPtr<SwapChain> _swapChain;
+
+		/// Audio system.
+		RefPtr<Audio> _audio;
 	};
 }
