@@ -92,17 +92,17 @@ namespace Alimer
 
 			if (windowCount == 0)
 			{
-				WNDCLASSEXW wc;
-				memset(&wc, 0, sizeof(wc));
+				WNDCLASSEXW wc = {};
 				wc.cbSize = sizeof(wc);
 				wc.style = CS_HREDRAW | CS_VREDRAW;
 				wc.lpfnWndProc = &WindowsWindow::GlobalWndProc;
 				wc.hInstance = GetModuleHandleW(nullptr);
 				wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 				wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+				wc.hIconSm = nullptr;
 				wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+				wc.lpszMenuName = nullptr;
 				wc.lpszClassName = _ALIMER__WNDCLASSNAME;
-				wc.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
 
 				if (!RegisterClassExW(&wc))
 				{

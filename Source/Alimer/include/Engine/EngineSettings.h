@@ -10,12 +10,14 @@
 #include "Prerequisites.h"
 #include "Core/WindowHandle.h"
 #include "Graphics/GraphicsDevice.h"
+#include "Audio/Audio.h"
 
 namespace Alimer
 {
 	struct EngineSettings
 	{
 		GraphicsDeviceType graphicsDeviceType = GraphicsDeviceType::Default;
+		AudioDeviceType audioDeviceType = AudioDeviceType::Default;
 
 		String title = "Alimer";
 		uint32_t width = 800;
