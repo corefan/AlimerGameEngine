@@ -7,6 +7,18 @@
 
 #include "XAudio2Audio.h"
 
+#if defined(WINDOWS_USE_DYNAMIC_LIB)
+#	include "XAudio27.h"
+
+typedef HRESULT(__stdcall* PFN_XAudioCreate)(_Outptr_ IXAudio2** ppXAudio2, UINT32 Flags, XAUDIO2_PROCESSOR XAudio2Processor);
+typedef HRESULT(_cdecl * PFN_X3DAudioInitialize)(UINT32 SpeakerChannelMask, FLOAT32 SpeedOfSound, _Out_writes_bytes_(X3DAUDIO_HANDLE_BYTESIZE) X3DAUDIO_HANDLE Instance);
+typedef void(_cdecl * PFN_X3DAudioCalculate)(_In_reads_bytes_(X3DAUDIO_HANDLE_BYTESIZE) const X3DAUDIO_HANDLE Instance, _In_ const X3DAUDIO_LISTENER* pListener, _In_ const X3DAUDIO_EMITTER* pEmitter, UINT32 Flags, _Inout_ X3DAUDIO_DSP_SETTINGS* pDSPSettings);
+PFN_X3DAudioInitialize X3DAudioInitializeFunc;
+PFN_X3DAudioCalculate X3DAudioCalculateFunc;
+#endif
+
+#define SAFE_DESTROY_VOICE(voice) if ( voice ) { voice->DestroyVoice(); voice = nullptr; }
+
 bool LoadModuleWithErrorMessage(const char* moduleName)
 {
 	if (!LoadLibraryA(moduleName))
@@ -32,13 +44,49 @@ namespace Alimer
 	XAudio2Audio::XAudio2Audio()
 		: Audio(AudioDeviceType::XAudio2)
 	{
-
+		memset(&_X3DAudio, 0, X3DAUDIO_HANDLE_BYTESIZE);
 	}
 
 	XAudio2Audio::~XAudio2Audio()
 	{
+		if (xAudio2)
+		{
+			if (_usingXAudio27)
+			{
+				IXAudio27StopEngine(xAudio2.Get());
+			}
+			else
+			{
+				//xAudio2->UnregisterForCallbacks(&_engineCallback);
+				xAudio2->StopEngine();
+			}
+		}
+
+		SAFE_DESTROY_VOICE(_reverbVoice);
+		SAFE_DESTROY_VOICE(_masterVoice);
+		_masterChannelMask = _masterChannels = _masterRate = 0;
+		//_criticalError = false;
+
+		xAudio2.Reset();
+
 		// Shutdown Media Foundation.
 		MFShutdown();
+
+		memset(&_X3DAudio, 0, X3DAUDIO_HANDLE_BYTESIZE);
+
+#if WINDOWS_USE_DYNAMIC_LIB
+		if (_xAudioDLL)
+		{
+			FreeLibrary(_xAudioDLL);
+			_xAudioDLL = nullptr;
+		}
+
+		if (_x3DAudioDLL)
+		{
+			FreeLibrary(_x3DAudioDLL);
+			_x3DAudioDLL = nullptr;
+		}
+#endif
 	}
 
 	bool XAudio2Audio::Initialize()
