@@ -4,10 +4,10 @@
 ## Features
 - Cross-platform.
 - Modern graphics/rendering API using Direct3D12, Vulkan, OpenGL 4.0, OpenGLES 3.0.
-- CommandBuffer, CommandEncoder + Command Queue based rendering.
+- CommandBuffer, CommandEncoder, Command Queue based rendering.
 
 ## Planned Features
-- .NET Core/Xamarin scripting support.
+- .NET Core/Standard and Xamarin scripting support.
 
 ## Download
 * Binaries - TODO
