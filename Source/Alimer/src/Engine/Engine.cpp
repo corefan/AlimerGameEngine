@@ -78,7 +78,6 @@ namespace Alimer
 					{
 						newSettings.graphicsDeviceType = GraphicsDeviceType::Vulkan;
 					}
-
 					else if (availableDrivers.find(GraphicsDeviceType::OpenGL) != availableDrivers.end())
 					{
 						newSettings.graphicsDeviceType = GraphicsDeviceType::OpenGL;
@@ -87,31 +86,42 @@ namespace Alimer
 					{
 						newSettings.graphicsDeviceType = GraphicsDeviceType::Empty;
 					}
-
-					switch (newSettings.graphicsDeviceType)
-					{
-					case GraphicsDeviceType::Empty:
-						ALIMER_LOGINFO("Using empty graphics backend.");
-						break;
-
-					case GraphicsDeviceType::Direct3D12:
-#if defined(ALIMER_WINDOWS)
-						ALIMER_LOGINFO("Using DirectX12 graphics backend.");
-						_graphicsDevice = new Direct3D12Device();
-#else
-						ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
-#endif
-					}
-
-					// Initialize graphics device.
-					if (!_graphicsDevice->Initialize())
-					{
-						return false;
-					}
-
-					// Create swap chain using our main window.
-					_swapChain = _graphicsDevice->CreateSwapChain(_window.get(), 2, newSettings.verticalSync);
 				}
+
+				// Now create the device.
+				switch (newSettings.graphicsDeviceType)
+				{
+				case GraphicsDeviceType::Empty:
+					ALIMER_LOGINFO("Using empty graphics backend.");
+					break;
+
+				case GraphicsDeviceType::Direct3D12:
+#if defined(ALIMER_WINDOWS)
+					ALIMER_LOGINFO("Using DirectX12 graphics backend.");
+					_graphicsDevice = new Direct3D12Device();
+#else
+					ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
+#endif
+					break;
+
+				case GraphicsDeviceType::Vulkan:
+#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+					ALIMER_LOGINFO("Using Vulkan graphics backend.");
+					//_graphicsDevice = new VulkanDevice();
+#else
+					ALIMER_LOGINFO("Vulkan backend not supported on given platform.");
+#endif
+					break;
+				}
+
+				// Initialize graphics device.
+				if (!_graphicsDevice->Initialize())
+				{
+					return false;
+				}
+
+				// Create swap chain using our main window.
+				_swapChain = _graphicsDevice->CreateSwapChain(_window.get(), 2, newSettings.verticalSync);
 			}
 		}
 
@@ -132,30 +142,31 @@ namespace Alimer
 			{
 				newSettings.audioDeviceType = AudioDeviceType::Empty;
 			}
+		}
 
-			switch (newSettings.audioDeviceType)
-			{
-			case AudioDeviceType::Empty:
-				ALIMER_LOGINFO("Using empty audio backend.");
-				break;
+		// Now create the audio backend.
+		switch (newSettings.audioDeviceType)
+		{
+		case AudioDeviceType::Empty:
+			ALIMER_LOGINFO("Using empty audio backend.");
+			break;
 
 #if defined(_MSC_VER)
-			case AudioDeviceType::XAudio2:
-				ALIMER_LOGINFO("Using XAudio 2 audio backend.");
-				_audio = new XAudio2Audio();
-				break;
+		case AudioDeviceType::XAudio2:
+			ALIMER_LOGINFO("Using XAudio 2 audio backend.");
+			_audio = new XAudio2Audio();
+			break;
 #endif
 
-			default:
-				ALIMER_LOGERROR("Unsupported audio backend");
-				return false;
-			}
+		default:
+			ALIMER_LOGERROR("Unsupported audio backend");
+			return false;
+		}
 
-			// Now initialize audio.
-			if (!_audio->Initialize())
-			{
-				return false;
-			}
+		// Now initialize audio.
+		if (!_audio->Initialize())
+		{
+			return false;
 		}
 
 		_time->ResetElapsedTime();
