@@ -15,6 +15,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 # Add engine sub folders, both include and src
 alimer_add_directory(Core)
 alimer_add_directory(Utils)
+alimer_add_directory(IO)
 alimer_add_directory(Math)
 alimer_add_directory(Engine)
 alimer_add_directory(Graphics)
