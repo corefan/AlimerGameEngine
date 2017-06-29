@@ -41,16 +41,14 @@ namespace Alimer
 	int Application::RunPlatformLoop()
 	{
 #ifdef _DEBUG
-		if (!IsDebuggerPresent() && !AllocConsole())
-		{
-			ALIMER_LOGERROR("Failed to allocate console");
-			return EXIT_FAILURE;
-		}
+		// Try to allocate console and don't print any errors.
+		AllocConsole();
 #endif
 
 		if (_state != ApplicationState::Running)
 		{
-			InitializeBeforeRun();
+			if (!InitializeBeforeRun())
+				return _exitCode;
 		}
 
 		int exitCode = EXIT_SUCCESS;
@@ -82,7 +80,9 @@ namespace Alimer
 				break;
 		}
 
-		//CoUninitialize();
+#if	!defined(ALIMER_WINMODERN)
+		CoUninitialize();
+#endif
 
 		return exitCode;
 	}

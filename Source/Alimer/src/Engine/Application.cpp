@@ -15,6 +15,7 @@ namespace Alimer
 		: _state(ApplicationState::Uninitialzed)
 		, _commandLine(new CommandLine())
 		, _engine(new Engine())
+		, _exitCode(EXIT_SUCCESS)
 	{
 		appInstance = this;
 	}
@@ -29,14 +30,17 @@ namespace Alimer
 		return appInstance;
 	}
 
-	void Application::InitializeBeforeRun()
+	bool Application::InitializeBeforeRun()
 	{
 		// Initialize engine
 		if (_state != ApplicationState::Uninitialzed) {
 			Shutdown();
 		}
 
-		Setup();
+		// If exit code was set during setup.
+		if (!Setup() || _exitCode)
+			return false;
+
 		if (!_engine->Initialize(_settings))
 		{
 			Shutdown();
@@ -44,8 +48,8 @@ namespace Alimer
 
 		Initialize();
 
-		//ResetElapsedTime();
 		_state = ApplicationState::Running;
+		return true;
 	}
 
 	void Application::Shutdown()
@@ -75,8 +79,7 @@ namespace Alimer
 			return -1;
 
 		// Run per platform game loop.
-		int exitCode = RunPlatformLoop();
-
-		return exitCode;
+		_exitCode = RunPlatformLoop();
+		return _exitCode;
 	}
 }

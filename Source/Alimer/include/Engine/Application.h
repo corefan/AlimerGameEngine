@@ -83,7 +83,7 @@ namespace Alimer
 		/**
 		* Setup before engine initialization and before running the main loop.
 		*/
-		virtual void Setup() { }
+		virtual bool Setup() { return true; }
 
 		/**
 		* Setup after engine initialization and before running the main loop.
@@ -91,7 +91,7 @@ namespace Alimer
 		virtual void Initialize() { }
 
 	private:
-		void InitializeBeforeRun();
+		bool InitializeBeforeRun();
 		void Shutdown();
 
 		int RunPlatformLoop();
@@ -102,6 +102,9 @@ namespace Alimer
 		EngineSettings _settings;
 		std::unique_ptr<CommandLine> _commandLine;
 		bool _screenSaverEnabled = true;
+
+		/// Application exit code.
+		int _exitCode;
 
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Application);
