@@ -9,6 +9,35 @@
 #include "Engine/Main.h"
 #include "Core/TimeSpan.h"
 
+void Help(const char* errorMessage = NULL)
+{
+	if (errorMessage != NULL)
+	{
+		fprintf(stderr, "Error:\n%s\n\n", errorMessage);
+	}
+
+	fprintf(stderr,
+		"Alimer Game Engine runtime player\n"
+		"Copyright 2016-2017 Amer Koleci. All rights reserved.\n"
+		"License: https://github.com/AlimerGameEngine/AlimerGameEngine/blob/master/LICENSE.md\n\n"
+	);
+
+	fprintf(stderr,
+		"Usage: AlimerPlayer <path> [options]\n"
+		"\n"
+		"<path>						Directory <path> to run from.\n"
+		"Options:\n"
+		"  -h --help                Display this help.\n"
+		"  -v --version             Display engine version.\n"
+		"  --gfx <type>             Target platform.\n"
+		"           default\n"
+		"           d3d11\n"
+		"           d3d12\n"
+		"           opengl|gl\n"
+		"           vulkan\n"
+	);
+}
+
 AlimerPlayer::AlimerPlayer()
 	: Application()
 {
@@ -21,19 +50,35 @@ AlimerPlayer::~AlimerPlayer()
 {
 }
 
-void AlimerPlayer::Setup()
+bool AlimerPlayer::Setup()
 {
 	Application::Setup();
 
-#if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
-	/*if (GetArguments().size() < 1 || _args.HasArg('h', "help"))
+	if (_commandLine->GetArgs().size() < 1 || _commandLine->HasArg('h', "help"))
 	{
 		Help();
-		//ErrorExit();
-		return;
-	}*/
+		_exitCode = EXIT_FAILURE;
+		return false;
+	}
 
-#endif
+	if (_commandLine->HasArg('v', "version"))
+	{
+		fprintf(stderr
+			, "AlimerPlayer, version %d.%d.%d.\n"
+			, ALIMER_VERSION_MAJOR
+			, ALIMER_VERSION_MINOR
+			, ALIMER_VERSION_PATCH
+		);
+
+		return false;
+	}
+
+	return true;
+}
+
+void AlimerPlayer::Initialize()
+{
+
 }
 
 int main(int argc, const char** argv)

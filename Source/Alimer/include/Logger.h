@@ -135,11 +135,13 @@ namespace Alimer
 #define ALIMER_LOGINFO(message)		Alimer::Logger::Log(Alimer::LogLevel::Info, message)
 #define ALIMER_LOGWARNING(message)	Alimer::Logger::Log(Alimer::LogLevel::Warning, message)
 #define ALIMER_LOGERROR(message)	Alimer::Logger::Log(Alimer::LogLevel::Error, message)
+#define ALIMER_LOGFATAL(message)	Alimer::Logger::Log(Alimer::LogLevel::Fatal, message)
 
 #define ALIMER_LOGDEBUGF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Debug, format, ##__VA_ARGS__)
 #define ALIMER_LOGINFOF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Info, format, ##__VA_ARGS__)
 #define ALIMER_LOGWARNINGF(format, ...) Alimer::Logger::LogFormat(Alimer::LogLevel::Warning, format, ##__VA_ARGS__)
 #define ALIMER_LOGERRORF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Error, format, ##__VA_ARGS__)
+#define ALIMER_LOGFATALF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Fatal, format, ##__VA_ARGS__)
 
 #else
 
@@ -147,9 +149,12 @@ namespace Alimer
 #define ALIMER_LOGINFO(message) ((void)0)
 #define ALIMER_LOGWARNING(message) ((void)0)
 #define ALIMER_LOGERROR(message) ((void)0)
+#define ALIMER_LOGFATAL(message) ((void)0)
+
 #define ALIMER_LOGDEBUGF(format, ...) ((void)0)
 #define ALIMER_LOGINFOF(format, ...) ((void)0)
 #define ALIMER_LOGWARNINGF(format, ...) ((void)0)
 #define ALIMER_LOGERRORF(format, ...) ((void)0)
+#define ALIMER_LOGFATALF(format, ...) ((void)0)
 
 #endif

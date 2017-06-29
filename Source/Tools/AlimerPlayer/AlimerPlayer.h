@@ -18,7 +18,8 @@ public:
 	virtual ~AlimerPlayer();
 
 protected:
-	void Setup() override;
+	bool Setup() override;
+	void Initialize() override;
 
 private:
 };
