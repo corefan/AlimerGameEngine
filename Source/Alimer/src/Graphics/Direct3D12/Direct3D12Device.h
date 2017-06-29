@@ -31,7 +31,7 @@ namespace Alimer
 		*/
 		static bool IsSupported();
 
-		bool Initialize() override;
+		bool Initialize(PhysicalDevice* physicalDevice) override;
 
 		RefPtr<SwapChain> CreateSwapChain(Window* window, uint32_t frameCount, bool verticalSync) override;
 
@@ -73,8 +73,6 @@ namespace Alimer
 			ID3D12CommandAllocator** allocator);
 
 		static constexpr uint32_t FrameCount = 2;
-
-		static void GetHardwareAdapter(_In_ IDXGIFactory2* pFactory, _Outptr_result_maybenull_ IDXGIAdapter1** ppAdapter);
 
 		ComPtr<IDXGIFactory4> _factory;
 		ComPtr<ID3D12Device> _d3d12Device;

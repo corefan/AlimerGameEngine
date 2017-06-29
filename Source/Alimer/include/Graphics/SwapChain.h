@@ -44,9 +44,10 @@ namespace Alimer
 		}
 
 	protected:
-		DISALLOW_COPY_AND_ASSIGN(SwapChain);
-
 		uint32_t _currentBackBufferIndex = 0;
 		std::vector<TexturePtr> _backbufferTextures;
+
+	private:
+		DISALLOW_COPY_AND_ASSIGN(SwapChain);
 	};
 }

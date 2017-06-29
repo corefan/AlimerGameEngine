@@ -6,6 +6,7 @@
 */
 
 #include "Direct3D12Device.h"
+#include "Direct3D12PhysicalDevice.h"
 #include "Direct3D12CommandBuffer.h"
 #include "Direct3D12SwapChain.h"
 
@@ -38,6 +39,30 @@ namespace Alimer
 #endif
 
 		ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&_factory)));
+
+		// Create adapters now
+		ComPtr<IDXGIAdapter1> adapter;
+
+		for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != _factory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
+		{
+			DXGI_ADAPTER_DESC1 desc;
+			adapter->GetDesc1(&desc);
+
+			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			{
+				// Don't select the Basic Render Driver adapter.
+				// If you want a software adapter, pass in "/warp" on the command line.
+				continue;
+			}
+
+			// Check to see if the adapter supports Direct3D 12, but don't create the
+			// actual device yet.
+			if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+			{
+				// Add to supported list
+				_physicalDevices.emplace_back(new Direct3D12PhysicalDevice(adapter));
+			}
+		}
 	}
 
 	Direct3D12Device::~Direct3D12Device()
@@ -103,16 +128,15 @@ namespace Alimer
 		return isAvailable;
 	}
 
-	bool Direct3D12Device::Initialize()
+	bool Direct3D12Device::Initialize(PhysicalDevice* physicalDevice)
 	{
-		if (!GraphicsDevice::Initialize())
+		if (!GraphicsDevice::Initialize(physicalDevice))
 			return false;
 
-		ComPtr<IDXGIAdapter1> hardwareAdapter;
-		GetHardwareAdapter(_factory.Get(), &hardwareAdapter);
+		IDXGIAdapter1* adapter = static_cast<Direct3D12PhysicalDevice*>(physicalDevice)->GetAdapter();
 
 		if (FAILED(D3D12CreateDevice(
-			hardwareAdapter.Get(),
+			adapter,
 			D3D_FEATURE_LEVEL_11_0,
 			IID_PPV_ARGS(&_d3d12Device))))
 		{
@@ -212,35 +236,5 @@ namespace Alimer
 		}
 
 		ThrowIfFailed(_d3d12Device->CreateCommandList(1, type, *allocator, nullptr, IID_PPV_ARGS(commandList)));
-	}
-
-	// Helper function for acquiring the first available hardware adapter that supports Direct3D 12.
-	// If no such adapter can be found, *ppAdapter will be set to nullptr.
-	_Use_decl_annotations_ void Direct3D12Device::GetHardwareAdapter(IDXGIFactory2* pFactory, IDXGIAdapter1** ppAdapter)
-	{
-		ComPtr<IDXGIAdapter1> adapter;
-		*ppAdapter = nullptr;
-
-		for (UINT adapterIndex = 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
-		{
-			DXGI_ADAPTER_DESC1 desc;
-			adapter->GetDesc1(&desc);
-
-			if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-			{
-				// Don't select the Basic Render Driver adapter.
-				// If you want a software adapter, pass in "/warp" on the command line.
-				continue;
-			}
-
-			// Check to see if the adapter supports Direct3D 12, but don't create the
-			// actual device yet.
-			if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
-			{
-				break;
-			}
-		}
-
-		*ppAdapter = adapter.Detach();
 	}
 }

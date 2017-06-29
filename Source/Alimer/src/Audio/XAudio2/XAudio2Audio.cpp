@@ -166,7 +166,7 @@ namespace Alimer
 
 			if (!_xAudioDLL)
 			{
-				ALIMER_LOGERROR("ERROR: XAudio 2.7 not installed on system (install the DirectX End-user Runtimes (June 2010))\n");
+				ALIMER_LOGERROR("ERROR: XAudio 2.7 not installed on system (install the DirectX End-user Runtimes (June 2010))");
 				return false;
 			}
 		}
@@ -208,7 +208,7 @@ namespace Alimer
 			xAudio2->SetDebugConfiguration(&debug, nullptr);
 			if (apiMinorVersion == 9)
 			{
-				ALIMER_LOGINFO("XAudio 2.9 debugging enabled\n");
+				ALIMER_LOGINFO("XAudio 2.9 debugging enabled");
 			}
 			else if (apiMinorVersion == 8)
 			{
@@ -217,12 +217,12 @@ namespace Alimer
 				//    View->Show Analytic and Debug Logs.
 				//    Applications and Services Logs / Microsoft / Windows / XAudio2. 
 				//    Right click on Microsoft Windows XAudio2 debug logging, Properties, then Enable Logging, and hit OK 
-				ALIMER_LOGINFO("XAudio 2.8 debugging enabled\n");
+				ALIMER_LOGINFO("XAudio 2.8 debugging enabled");
 			}
 			else
 			{
 				// To see the trace output, see the debug output channel window
-				ALIMER_LOGINFO("XAudio 2.7 debugging enabled\n");
+				ALIMER_LOGINFO("XAudio 2.7 debugging enabled");
 			}
 		}
 

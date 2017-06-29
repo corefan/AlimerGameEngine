@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Core/RefCounted.h"
+#include "Graphics/PhysicalDevice.h"
 #include "Graphics/SwapChain.h"
 #include "Graphics/CommandBuffer.h"
 
@@ -45,9 +45,14 @@ namespace Alimer
 		static std::set<GraphicsDeviceType> GetAvailableDrivers();
 
 		/**
-		* Initialize the device.
+		* Get all physical devices.
 		*/
-		virtual bool Initialize();
+		std::vector<PhysicalDevice*> GetPhysicalDevices() const { return _physicalDevices; }
+
+		/**
+		* Initialize the device with given physical device.
+		*/
+		virtual bool Initialize(PhysicalDevice* physicalDevice);
 
 		/**
 		* Creates a SwapChain.
@@ -81,6 +86,8 @@ namespace Alimer
 	protected:
 		GraphicsDeviceType _deviceType;
 		bool _initialized = false;
+		std::vector<PhysicalDevice*> _physicalDevices;
+		PhysicalDevice* _physicalDevice = nullptr;
 
 	private:
 		DISALLOW_COPY_AND_ASSIGN(GraphicsDevice);

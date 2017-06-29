@@ -27,12 +27,14 @@ namespace Alimer
 	{
 	}
 
-	bool GraphicsDevice::Initialize()
+	bool GraphicsDevice::Initialize(PhysicalDevice* physicalDevice)
 	{
 		if (_initialized)
 			return true;
 
+		_physicalDevice = physicalDevice;
 		_initialized = true;
+
 		return true;
 	}
 

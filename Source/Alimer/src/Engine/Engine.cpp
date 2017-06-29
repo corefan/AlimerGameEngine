@@ -131,7 +131,9 @@ namespace Alimer
 				}
 
 				// Initialize graphics device.
-				if (!_graphicsDevice->Initialize())
+				// Initialize graphics device.
+				PhysicalDevice* physicalDevice = _graphicsDevice->GetPhysicalDevices()[0];
+				if (!_graphicsDevice->Initialize(physicalDevice))
 				{
 					return false;
 				}
