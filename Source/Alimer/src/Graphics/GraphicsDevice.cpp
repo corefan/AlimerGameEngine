@@ -15,6 +15,16 @@
 //#include "Graphics/Vulkan/VulkanDevice.h"
 #endif
 
+#ifdef _WIN32
+// Prefer the high-performance GPU on switchable GPU systems
+#include <windows.h>
+extern "C" {
+	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
+#endif
+
 namespace Alimer
 {
 	GraphicsDevice::GraphicsDevice(GraphicsDeviceType deviceType)
