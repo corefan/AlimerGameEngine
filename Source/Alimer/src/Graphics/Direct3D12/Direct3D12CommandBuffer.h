@@ -71,8 +71,6 @@ namespace Alimer
 		void RestoreDefaultStates();
 
 	private:
-		Direct3D12Device* _device;
-
 		D3D12_COMMAND_LIST_TYPE _commandListType;
 		ID3D12GraphicsCommandList* _commandList;
 		ID3D12CommandAllocator* _currentAllocator;

@@ -110,12 +110,11 @@ namespace Alimer
 	}
 
 	Direct3D12CommandBuffer::Direct3D12CommandBuffer(Direct3D12Device* device, D3D12_COMMAND_LIST_TYPE commandListType)
-		: CommandBuffer()
-		, _device(device)
+		: CommandBuffer(device)
 		, _commandListType(commandListType)
 		, _currentAllocator(nullptr)
 	{
-		_commandList = _device->AllocateCommandList(commandListType, &_currentAllocator);
+		_commandList = device->AllocateCommandList(commandListType, &_currentAllocator);
 	}
 
 	Direct3D12CommandBuffer::~Direct3D12CommandBuffer()
@@ -137,7 +136,8 @@ namespace Alimer
 		// Restore default resource states.
 		RestoreDefaultStates();
 
-		auto& queue = _device->GetQueue(_commandListType);
+		auto d3dDevice = static_cast<Direct3D12Device*>(_graphics.Get());
+		auto& queue = d3dDevice->GetQueue(_commandListType);
 
 		_fenceValue = queue.ExecuteCommandList(_commandList);
 		queue.DiscardAllocator(_fenceValue, _currentAllocator);
@@ -145,11 +145,11 @@ namespace Alimer
 
 		if (waitForExecution)
 		{
-			_device->WaitForFence(_fenceValue);
+			d3dDevice->WaitForFence(_fenceValue);
 		}
 
 		// Free command list for late re execution.
-		_device->FreeCommandList(_commandListType, _commandList);
+		d3dDevice->FreeCommandList(_commandListType, _commandList);
 	}
 
 	void Direct3D12CommandBuffer::TransitionResource(const Direct3D12Resource* resource, D3D12_RESOURCE_STATES state, bool flushImmediate)

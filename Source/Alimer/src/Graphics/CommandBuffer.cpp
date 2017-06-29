@@ -9,7 +9,8 @@
 
 namespace Alimer
 {
-	CommandBuffer::CommandBuffer()
+	CommandBuffer::CommandBuffer(GraphicsDevice* device)
+		: GraphicsResource(device, GraphicsResourceType::CommandBuffer)
 	{
 		
 	}

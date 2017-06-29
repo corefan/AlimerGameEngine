@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Graphics/GraphicsResource.h"
 #include "Graphics/CommandEncoder.h"
 #include "Graphics/RenderPassCommandEncoder.h"
 
@@ -33,13 +34,13 @@ namespace Alimer
 	/**
 	* Command Buffer.
 	*/
-	class ALIMER_API CommandBuffer : public RefCounted
+	class ALIMER_API CommandBuffer : public GraphicsResource
 	{
 	protected:
 		/**
 		* Constructor.
 		*/
-		CommandBuffer();
+		CommandBuffer(GraphicsDevice* device);
 
 	public:
 		/**
