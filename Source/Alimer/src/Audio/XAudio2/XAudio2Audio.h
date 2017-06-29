@@ -48,7 +48,7 @@ namespace Alimer
 				UNREFERENCED_PARAMETER(error);
 #endif
 				
-				ALIMER_LOGERROR("XAudio2 engine encountered critical error (%08X)\n", error);
+				ALIMER_LOGERRORF("XAudio2 engine encountered critical error (%08X)", error);
 				SetEvent(criticalError.get());
 			}
 

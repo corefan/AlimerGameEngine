@@ -8,10 +8,20 @@
 #include "Prerequisites.h"
 #include "Logger.h"
 #include "Core/Thread.h"
+#include "Utils/StringUtils.h"
 #include <ctime>
 #include <cctype>
 #include <cstdarg>
 #include <fstream>
+
+#if ALIMER_WINDOWS
+#include <windows.h>
+#include <strsafe.h>
+#endif
+
+#if ALIMER_ANDROID
+#include <android/log.h>
+#endif
 
 #if defined(ALIMER_HTML5)
 #include <emscripten.h>
@@ -69,7 +79,7 @@ namespace Alimer
 	{
 		if (level < LogLevel::Debug)
 		{
-			ALIMER_LOGERROR("Attempted to set erroneous log level %d", (uint32_t)level);
+			ALIMER_LOGERRORF("Attempted to set erroneous log level %d", (uint32_t)level);
 			return;
 		}
 
@@ -86,7 +96,7 @@ namespace Alimer
 		_quiet = quiet;
 	}
 
-	void Logger::Log(LogLevel level, const char* message, ...)
+	void Logger::Log(LogLevel level, const String& message)
 	{
 		// No-op if illegal level
 		if (level < LogLevel::Debug)
@@ -108,38 +118,93 @@ namespace Alimer
 		if (!loggerInstance || loggerInstance->_level > level || loggerInstance->_inWrite)
 			return;
 
-		// Declare a moderately sized buffer on the stack that should be
-		// large enough to accommodate most log requests.
-		int size = 1024;
-		char stackBuffer[1024];
-		std::vector<char> dynamicBuffer;
-		char* str = stackBuffer;
-		for (;;)
+		String formattedMessage = logLevelPrefixes[(int)level];
+		formattedMessage += ": " + message;
+
+		if (loggerInstance->_timeStamp)
 		{
-			va_list args;
-			va_start(args, message);
-
-			// Pass one less than size to leave room for NULL terminator
-			int needed = vsnprintf(str, size - 1, message, args);
-
-			// NOTE: Some platforms return -1 when vsnprintf runs out of room, while others return
-			// the number of characters actually needed to fill the buffer.
-			if (needed >= 0 && needed < size)
-			{
-				// Successfully wrote buffer. Added a NULL terminator in case it wasn't written.
-				str[needed] = '\0';
-				va_end(args);
-				break;
-			}
-
-			size = needed > 0 ? (needed + 1) : (size * 2);
-			dynamicBuffer.resize(size);
-			str = &dynamicBuffer[0];
-
-			va_end(args);
+			//formattedMessage = "[" + Time::GetTimeStamp() + "] " + formattedMessage;
 		}
 
-#if defined(ALIMER_HTML5)
+		if (_loggerStream.is_open())
+		{
+			_loggerStream << formattedMessage << std::endl;
+
+			// Flush stcmdream to ensure it is written (incase of a crash, we need log to be up to date)
+			_loggerStream.flush();
+		}
+
+#if ALIMER_MACOS || ALIMER_LINUX
+		switch (level)
+		{
+		case LogLevel::Fatal:
+		case LogLevel::Error:
+		case LogLevel::Warning:
+			std::cerr << formattedMessage << std::endl;
+			break;
+
+		default:
+			std::cout << formattedMessage << std::endl;
+			break;
+		}
+
+#elif ALIMER_WINDOWS
+		std::vector<wchar_t> szBuffer(formattedMessage.length() + 2);
+		MultiByteToWideChar(CP_UTF8, 0, formattedMessage.c_str(), -1, szBuffer.data(), static_cast<int>(szBuffer.size()));
+		StringCchCatW(szBuffer.data(), szBuffer.size(), L"\n");
+		OutputDebugStringW(szBuffer.data());
+
+#ifdef _DEBUG
+		HANDLE handle = 0;
+		switch (level)
+		{
+		case LogLevel::Error:
+		case LogLevel::Warning:
+		case LogLevel::Fatal:
+			handle = GetStdHandle(STD_ERROR_HANDLE);
+			break;
+
+		default:
+			handle = GetStdHandle(STD_OUTPUT_HANDLE);
+			break;
+		}
+
+		if (handle)
+		{
+			DWORD bytesWritten;
+			WriteConsoleW(handle, szBuffer.data(), static_cast<DWORD>(wcslen(szBuffer.data())), &bytesWritten, nullptr);
+		}
+#endif
+
+#elif ALIMER_ANDROID
+		int priority = ANDROID_LOG_INFO;
+		switch (level)
+		{
+		case LogLevel::Error:
+			priority = ANDROID_LOG_ERROR;
+			break;
+
+		case LogLevel::Fatal:
+			priority = ANDROID_LOG_FATAL;
+			break;
+
+		case LogLevel::Warning:
+			priority = ANDROID_LOG_WARN;
+			break;
+
+		case LogLevel::Debug:
+			priority = ANDROID_LOG_DEBUG;
+			break;
+
+		case LogLevel::Verbose:
+			priority = ANDROID_LOG_VERBOSE;
+			break;
+
+		default:  break;
+		}
+		__android_log_print(priority, "Alimer", "%s", message.c_str());
+
+#elif ALIMER_HTML5
 		int flags = EM_LOG_CONSOLE;
 		if (level == LogLevel::Error)
 		{
@@ -157,26 +222,6 @@ namespace Alimer
 
 		return;
 #endif
-
-		String formattedMessage = logLevelPrefixes[(int)level];
-		formattedMessage += ": " + String(str);
-
-		if (loggerInstance->_timeStamp)
-		{
-			//formattedMessage = "[" + Time::GetTimeStamp() + "] " + formattedMessage;
-		}
-
-		if (_loggerStream.is_open())
-		{
-			_loggerStream << formattedMessage << std::endl;
-
-			// Flush stcmdream to ensure it is written (incase of a crash, we need log to be up to date)
-			_loggerStream.flush();
-		}
-
-		// Log to the default platform output
-		Platform::Print("%s", formattedMessage.c_str());
-
 		// Send log event.
 		loggerInstance->_inWrite = true;
 
@@ -185,11 +230,20 @@ namespace Alimer
 			for (std::list<Logger::Listener*>::iterator itr = loggerInstance->_listeners->begin(); itr != loggerInstance->_listeners->end(); ++itr)
 			{
 				Logger::Listener* listener = *itr;
-				listener->MessageLogged(level, str, formattedMessage.c_str());
+				listener->MessageLogged(level, message.c_str(), formattedMessage.c_str());
 			}
 		}
 
 		loggerInstance->_inWrite = false;
+	}
+
+	void Logger::LogFormat(LogLevel level, const char* format, ...)
+	{
+		va_list args;
+		va_start(args, format);
+		String message = StringUtils::Format(format, args);
+		Log(level, message);
+		va_end(args);
 	}
 
 	void Logger::AddListener(Logger::Listener* listener)

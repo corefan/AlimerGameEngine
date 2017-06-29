@@ -51,7 +51,7 @@ namespace Alimer
 		// Initialize logger
 		_logger->Open("Alimer.log");
 
-		ALIMER_LOGINFO("Initializing Alimer Engine %s...", ALIMER_VERSION_STR);
+		ALIMER_LOGINFOF("Initializing Alimer Engine %s...", ALIMER_VERSION_STR);
 
 		// Initialize window and graphics backend.
 		if (!newSettings.headless)
@@ -62,7 +62,7 @@ namespace Alimer
 			}
 			else
 			{
-				ALIMER_LOGINFO("Creating window with {%d, %d} size.", newSettings.width, newSettings.height);
+				ALIMER_LOGINFOF("Creating window with {%d, %d} size.", newSettings.width, newSettings.height);
 
 				_window.reset(new Window(newSettings.width, newSettings.height, newSettings.title, newSettings.resizable, newSettings.fullscreen));
 

@@ -69,7 +69,15 @@ namespace Alimer
 		* @param level Log level.
 		* @param message Log message.
 		*/
-		static void Log(LogLevel level, const char* message, ...);
+		static void Log(LogLevel level, const String& message);
+
+		/**
+		* Logs a message at the specified log level.
+		*
+		* @param level Log level.
+		* @param format The format string.
+		*/
+		static void LogFormat(LogLevel level, const char* format, ...);
 
 		/**
 		* Listener interface for Log events.
@@ -101,6 +109,8 @@ namespace Alimer
 		*/
 		void RemoveListener(Logger::Listener* listener);
 
+
+
 	private:
 		Logger(const Logger&) = delete;
 		Logger& operator=(const Logger&) = delete;
@@ -120,55 +130,26 @@ namespace Alimer
 }
 
 #ifndef ALIMER_DISABLE_LOGGING
-#	if defined(_MSC_VER) && defined(_DEBUG)
-#		define DEBUG_BREAK() __debugbreak()
-#	else
-#	define DEBUG_BREAK()
-#endif
 
-// Current function macro.
-#if defined(_MSC_VER)
-#	define __current__func__ __FUNCTION__
-#else
-#	define __current__func__ __func__
-#endif
+#define ALIMER_LOGDEBUG(message)	Alimer::Logger::Log(Alimer::LogLevel::Debug, message)
+#define ALIMER_LOGINFO(message)		Alimer::Logger::Log(Alimer::LogLevel::Info, message)
+#define ALIMER_LOGWARNING(message)	Alimer::Logger::Log(Alimer::LogLevel::Warning, message)
+#define ALIMER_LOGERROR(message)	Alimer::Logger::Log(Alimer::LogLevel::Error, message)
 
-// Error macro.
-#ifdef ALIMER_ERRORS_AS_WARNINGS
-#define ALIMER_ERROR ALIMER_WARN
-#else
-#define ALIMER_ERROR(...) do \
-{ \
-	Alimer::Logger::Log(Alimer::LogLevel::Error, "%s -- ", __current__func__); \
-	Alimer::Logger::Log(Alimer::LogLevel::Error, __VA_ARGS__); \
-	Alimer::Logger::Log(Alimer::LogLevel::Error, "\n"); \
-	DEBUG_BREAK(); \
-	assert(0); \
-	std::exit(-1); \
-} while (0)
-#endif
-
-// Warning macro.
-#define ALIMER_WARN(...) do \
-{ \
-	Alimer::Logger::Log(Alimer::LogLevel::Warning, "%s -- ", __current__func__); \
-	Alimer::Logger::Log(Alimer::LogLevel::Warning, __VA_ARGS__); \
-	Alimer::Logger::Log(Alimer::LogLevel::Warning, "\n"); \
-} while (0)
-
-#define ALIMER_LOGDEBUG(...) Alimer::Logger::Log(Alimer::LogLevel::Debug, __VA_ARGS__)
-#define ALIMER_LOGINFO(...) Alimer::Logger::Log(Alimer::LogLevel::Info, __VA_ARGS__)
-#define ALIMER_LOGWARNING(...) Alimer::Logger::Log(Alimer::LogLevel::Warning, __VA_ARGS__)
-#define ALIMER_LOGERROR(...) Alimer::Logger::Log(Alimer::LogLevel::Error, __VA_ARGS__)
+#define ALIMER_LOGDEBUGF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Debug, format, ##__VA_ARGS__)
+#define ALIMER_LOGINFOF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Info, format, ##__VA_ARGS__)
+#define ALIMER_LOGWARNINGF(format, ...) Alimer::Logger::LogFormat(Alimer::LogLevel::Warning, format, ##__VA_ARGS__)
+#define ALIMER_LOGERRORF(format, ...)	Alimer::Logger::LogFormat(Alimer::LogLevel::Error, format, ##__VA_ARGS__)
 
 #else
 
-#define ALIMER_ERROR(...)
-#define ALIMER_WARN(...)
-
-#define ALIMER_LOGDEBUG(...)
-#define ALIMER_LOGINFO(...)
-#define ALIMER_LOGWARNING(...)
-#define ALIMER_LOGERROR(...)
+#define ALIMER_LOGDEBUG(message) ((void)0)
+#define ALIMER_LOGINFO(message) ((void)0)
+#define ALIMER_LOGWARNING(message) ((void)0)
+#define ALIMER_LOGERROR(message) ((void)0)
+#define ALIMER_LOGDEBUGF(format, ...) ((void)0)
+#define ALIMER_LOGINFOF(format, ...) ((void)0)
+#define ALIMER_LOGWARNINGF(format, ...) ((void)0)
+#define ALIMER_LOGERRORF(format, ...) ((void)0)
 
 #endif

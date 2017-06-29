@@ -106,7 +106,8 @@ namespace Alimer
 
 				if (!RegisterClassExW(&wc))
 				{
-					ALIMER_ERROR("Could not register window class!");
+					ALIMER_LOGERROR("Could not register window class!");
+					return;
 				}
 			}
 

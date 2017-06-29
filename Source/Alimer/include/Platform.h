@@ -232,22 +232,3 @@
 #define ALIMER_CONCAT(X, Y) ALIMER_CONCAT_HELPER(X, Y)
 
 #include "Types.h"
-
-namespace Alimer
-{
-	class ALIMER_API Platform
-	{
-	public:
-		/**
-		* Cross platform logging.
-		*/
-		static void Print(const char* format, ...);
-
-	private:
-		Platform() {}
-		virtual ~Platform() { }
-
-		Platform(const Platform&) = delete;
-		Platform& operator=(const Platform&) = delete;
-	};
-}

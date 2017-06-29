@@ -27,11 +27,11 @@ bool LoadModuleWithErrorMessage(const char* moduleName)
 		uint32 errorCode = GetLastError();
 		if (errorCode == ERROR_MOD_NOT_FOUND)
 		{
-			ALIMER_LOGERROR("XAudio: Could not load '%s'.", moduleName);
+			ALIMER_LOGERRORF("XAudio: Could not load '%s'.", moduleName);
 		}
 		else
 		{
-			ALIMER_LOGERROR("XAudio: Could not load '%s', error code: %d", moduleName, errorCode);
+			ALIMER_LOGERRORF("XAudio: Could not load '%s', error code: %d", moduleName, errorCode);
 		}
 
 		return false;
@@ -132,7 +132,7 @@ namespace Alimer
 		hr = MFStartup(MF_VERSION);
 		if (FAILED(hr))
 		{
-			ALIMER_LOGERROR("Failed to initialize Media Foundation, Error: %i", hr);
+			ALIMER_LOGERRORF("Failed to initialize Media Foundation, Error: %i", hr);
 		}
 
 		// Create XAudio2 engine
@@ -196,7 +196,7 @@ namespace Alimer
 
 		if (FAILED(hr))
 		{
-			ALIMER_LOGERROR("Failed to initialize XAudio2.%d, error: %i", apiMinorVersion, hr);
+			ALIMER_LOGERRORF("Failed to initialize XAudio2.%d, error: %i", apiMinorVersion, hr);
 			return false;
 		}
 
@@ -355,7 +355,7 @@ namespace Alimer
 			}
 		}
 
-		ALIMER_LOGINFO("Mastering voice has %u channels, %u sample rate, %08X channel mask\n", _masterChannels, _masterRate, _masterChannelMask);
+		ALIMER_LOGDEBUGF("Mastering voice has %u channels, %u sample rate, %08X channel mask", _masterChannels, _masterRate, _masterChannelMask);
 
 		// Setup 3D audio
 		const float SPEEDOFSOUND = X3DAUDIO_SPEED_OF_SOUND;
