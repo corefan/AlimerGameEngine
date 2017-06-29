@@ -9,6 +9,7 @@
 #include "Direct3D12PhysicalDevice.h"
 #include "Direct3D12CommandBuffer.h"
 #include "Direct3D12SwapChain.h"
+#include "Direct3D12Shader.h"
 
 namespace Alimer
 {
@@ -188,6 +189,11 @@ namespace Alimer
 	{
 		auto d3dCommandBuffer = static_cast<Direct3D12CommandBuffer*>(commandBuffer.Get());
 		d3dCommandBuffer->Submit(waitForExecution);
+	}
+
+	ShaderPtr Direct3D12Device::CreateShader(uint32_t codeSize, const uint32_t* code)
+	{
+		return new Direct3D12Shader(this, codeSize, code);
 	}
 
 	void Direct3D12Device::WaitForFence(uint64_t fenceValue)

@@ -39,6 +39,8 @@ namespace Alimer
 		RefPtr<CommandBuffer> CreateCommandBuffer() override;
 		void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution) override;
 
+		ShaderPtr CreateShader(uint32_t codeSize, const uint32_t* code) override;
+
 		void WaitForFence(uint64_t fenceValue);
 
 		ID3D12GraphicsCommandList* AllocateCommandList(D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator** allocator);

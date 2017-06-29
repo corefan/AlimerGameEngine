@@ -11,6 +11,7 @@
 #include "Graphics/PhysicalDevice.h"
 #include "Graphics/SwapChain.h"
 #include "Graphics/CommandBuffer.h"
+#include "Graphics/Shader.h"
 
 namespace Alimer
 {
@@ -71,6 +72,11 @@ namespace Alimer
 		* Submit given command buffer and eventually wait for its execution.
 		*/
 		virtual void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution = false) = 0;
+
+		/**
+		* Creates a shader.
+		*/
+		virtual ShaderPtr CreateShader(uint32_t codeSize, const uint32_t* code) = 0;
 
 		/**
 		* Gets the type of this device.
