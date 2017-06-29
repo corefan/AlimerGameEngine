@@ -10,8 +10,8 @@ include(AlimerMacros)
 
 # set host system variables
 set (ALIMER_HOST_WINDOWS 0)
-set(ALIMER_HOST_OSX 0)
-set(ALIMER_HOST_LINUX 0)
+set (ALIMER_HOST_OSX 0)
+set (ALIMER_HOST_LINUX 0)
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	set(ALIMER_HOST_WINDOWS 1)
@@ -164,7 +164,15 @@ else ()
     set (CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING ${DOC_STRING} FORCE)
 endif ()
 
+# Define all supported build options
 include (CMakeDependentOption)
+# Enable threading by default, except for Emscripten because its thread support is yet experimental
+if (NOT ALIMER_PLATFORM_WEB)
+    set (THREADING_DEFAULT TRUE)
+endif ()
+
+option (ALIMER_THREADING "Enable thread support, on Web platform default to 0, on other platforms default to 1" ${THREADING_DEFAULT})
+cmake_dependent_option (ALIMER_NETWORK "Enable networking support" TRUE "NOT ALIMER_PLATFORM_WEB AND EXCEPTIONS" FALSE)
 
 # Set definitions
 if( ALIMER_PLATFORM_WINDOWS OR ALIMER_PLATFORM_ANDROID OR ALIMER_PLATFORM_IOS)
@@ -222,3 +230,10 @@ elseif (NOT XCODE)
 	endif()
 
 endif()
+
+# Define preprocessor macros (for building the Alimer library) based on the configured build options.
+foreach (OPT ALIMER_NETWORK ALIMER_THREADING)
+	if (${OPT})
+		add_definitions (-D${OPT})
+	endif()
+endforeach()
