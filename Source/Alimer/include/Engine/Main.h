@@ -37,8 +37,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 		UNREFERENCED_PARAMETER(hPrevInstance); \
 		UNREFERENCED_PARAMETER(lpCmdLine); \
 		UNREFERENCED_PARAMETER(nCmdShow); \
-		Alimer::ParseArguments(::GetCommandLineW()); \
 		std::unique_ptr<appClass> application(new appClass()); \
+		application->GetArgs()->Parse(::GetCommandLineW()); \
 		return application->Run(); \
 }
 #elif defined(ALIMER_WINMODERN)
@@ -59,9 +59,9 @@ void android_main(struct android_app* app_) { \
 }
 #else
 #define ALIMER_MAIN(appClass) \
-int main(int argc, char** argv) { \
-	Alimer::ParseArguments(argc, argv); \
+int main(int argc, const char** argv) { \
 	std::unique_ptr<appClass> application(new appClass()); \
+	application->GetArgs()->Parse(argc, argv); \
 	return application->Run(); \
 }
 #endif

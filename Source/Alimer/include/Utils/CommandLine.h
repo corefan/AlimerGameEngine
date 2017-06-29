@@ -12,16 +12,44 @@
 
 namespace Alimer
 {
-	/// Parse arguments from the command line. First argument is by default assumed to be the executable name and is skipped.
-	ALIMER_API const std::vector<String>& ParseArguments(const String& cmdLine, bool skipFirstArgument = true);
-	/// Parse arguments from the command line.
-	ALIMER_API const std::vector<String>& ParseArguments(const char* cmdLine);
-	/// Parse arguments from a wide char command line.
-	ALIMER_API const std::vector<String>& ParseArguments(const WString& cmdLine);
-	/// Parse arguments from a wide char command line.
-	ALIMER_API const std::vector<String>& ParseArguments(const wchar_t* cmdLine);
-	/// Parse arguments from argc & argv.
-	ALIMER_API const std::vector<String>& ParseArguments(int argc, char** argv);
+	class ALIMER_API CommandLine
+	{
+	public:
+		/**
+		* Constructor.
+		*/
+		CommandLine();
 
-	ALIMER_API const std::vector<String>& GetArguments();
+		/**
+		* Destructor.
+		*/
+		~CommandLine();
+
+		void Parse(const WString& commandLine, bool skipFirstArgument = true);
+		void Parse(int argc, const char** argv, bool skipFirstArgument = true);
+		void Parse(const String& commandLine, bool skipFirstArgument = true);
+		
+		String FindOption(const String& longName, const String& defaultValue) const;
+		String FindOption(const char shortName, const String& longName, const String& defaultValue) const;
+		const char* FindOption(const String& longName, size_t numParams = 1) const;
+		const char* FindOption(const char shortName, const String& longName = "", size_t numParams = 1) const;
+
+		bool HasArg(const char shortName, const String& longName = "") const;
+		bool HasArg(const String& longName = "") const;
+
+		String GetString(const String& arg, const String& defaultValue = "") const;
+		int GetInt(const String& arg, int defaultValue = 0) const;
+		uint32_t GetUInt(const String& arg, uint32_t defaultValue = 0) const;
+		float GetFloat(const String& arg, float defaultValue = 0.0f) const;
+
+		/**
+		* Gets vector of arguments.
+		*/
+		const std::vector<String>& GetArgs() const;
+
+	private:
+		const char* Find(const char shortName, const String& longName, size_t numParams) const;
+		
+		std::vector<String> _args;
+	};
 }

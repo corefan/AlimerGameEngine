@@ -68,7 +68,6 @@ namespace Alimer
 		/// Compare two C strings.
 		static int Compare(const String& str1, const String& str2, bool caseSensitive);
 
-
 		/// Return the amount of substrings split by a separator char.
 		static size_t CountElements(const char* str, char separator);
 

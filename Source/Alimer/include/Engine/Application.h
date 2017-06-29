@@ -9,6 +9,7 @@
 
 #include "Prerequisites.h"
 #include "Engine/Engine.h"
+#include "Utils/CommandLine.h"
 
 namespace Alimer
 {
@@ -68,6 +69,10 @@ namespace Alimer
 			return _engine.Get();
 		}
 
+		CommandLine* GetArgs() const {
+			return _commandLine.get();
+		}
+
 		void SetScreenSaverEnabled(bool value)
 		{
 			_screenSaverEnabled = value;
@@ -95,6 +100,7 @@ namespace Alimer
 		ApplicationState _state;
 		RefPtr<Engine> _engine;
 		EngineSettings _settings;
+		std::unique_ptr<CommandLine> _commandLine;
 		bool _screenSaverEnabled = true;
 
 	private:

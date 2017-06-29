@@ -13,6 +13,7 @@ namespace Alimer
 
 	Application::Application()
 		: _state(ApplicationState::Uninitialzed)
+		, _commandLine(new CommandLine())
 		, _engine(new Engine())
 	{
 		appInstance = this;

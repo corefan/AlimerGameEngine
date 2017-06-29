@@ -12,6 +12,9 @@
 AlimerPlayer::AlimerPlayer()
 	: Application()
 {
+#if defined(_MSC_VER) && defined(_DEBUG)
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
 }
 
 AlimerPlayer::~AlimerPlayer()
@@ -33,4 +36,9 @@ void AlimerPlayer::Setup()
 #endif
 }
 
-ALIMER_MAIN(AlimerPlayer);
+int main(int argc, const char** argv)
+{
+	std::unique_ptr<AlimerPlayer> application(new AlimerPlayer());
+	application->GetArgs()->Parse(argc, argv);
+	return application->Run();
+}
