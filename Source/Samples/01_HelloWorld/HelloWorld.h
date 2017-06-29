@@ -18,4 +18,5 @@ public:
 	virtual ~HelloWorld();
 
 private:
+	bool Setup() override;
 };

@@ -7,9 +7,13 @@
 
 #include "Engine/Engine.h"
 
-#if defined(_MSC_VER)
+#if defined(ALIMER_WINDOWS) || defined(ALIMER_WINMODERN)
 #include "Graphics/Direct3D12/Direct3D12Device.h"
 #include "Audio/XAudio2/XAudio2Audio.h"
+#endif
+
+#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+//#include "Graphics/Vulkan/VulkanDevice.h"
 #endif
 
 namespace Alimer
@@ -97,20 +101,32 @@ namespace Alimer
 
 				case GraphicsDeviceType::Direct3D12:
 #if defined(ALIMER_WINDOWS)
-					ALIMER_LOGINFO("Using DirectX12 graphics backend.");
-					_graphicsDevice = new Direct3D12Device();
-#else
-					ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
+					if (Direct3D12Device::IsSupported())
+					{
+						ALIMER_LOGINFO("Using DirectX12 graphics backend.");
+						_graphicsDevice = new Direct3D12Device();
+					}
+					else
 #endif
+					{
+						ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
+					}
+
 					break;
 
 				case GraphicsDeviceType::Vulkan:
 #if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
-					ALIMER_LOGINFO("Using Vulkan graphics backend.");
-					//_graphicsDevice = new VulkanDevice();
-#else
-					ALIMER_LOGINFO("Vulkan backend not supported on given platform.");
+					/*if (VulkanDevice::IsSupported())
+					{
+						ALIMER_LOGINFO("Using Vulkan graphics backend.");
+						_graphicsDevice = new VulkanDevice();
+					}
+					else*/
 #endif
+					{
+						ALIMER_LOGINFO("Vulkan backend not supported on given platform.");
+					}
+
 					break;
 				}
 

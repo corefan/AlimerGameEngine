@@ -18,4 +18,12 @@ HelloWorld::~HelloWorld()
 {
 }
 
+bool HelloWorld::Setup()
+{
+	_settings.graphicsDeviceType = GraphicsDeviceType::Direct3D12;
+	//_settings.graphicsDeviceType = GraphicsDeviceType::Vulkan;
+
+	return true;
+}
+
 ALIMER_MAIN(HelloWorld);

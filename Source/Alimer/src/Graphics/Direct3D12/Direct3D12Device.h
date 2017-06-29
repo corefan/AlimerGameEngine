@@ -16,11 +16,20 @@ namespace Alimer
 	class Direct3D12Device final : public GraphicsDevice
 	{
 	public:
-		typedef GraphicsDevice Parent;
-
+		/**
+		* Constructor.
+		*/
 		Direct3D12Device();
 
+		/**
+		* Destructor.
+		*/
 		virtual ~Direct3D12Device();
+
+		/**
+		* Checks whether backend is supported.
+		*/
+		static bool IsSupported();
 
 		bool Initialize() override;
 

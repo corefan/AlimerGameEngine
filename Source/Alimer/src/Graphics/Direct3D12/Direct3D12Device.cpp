@@ -19,61 +19,20 @@ namespace Alimer
 	{
 		UINT dxgiFactoryFlags = 0;
 
-#if WINDOWS_USE_DYNAMIC_LIB
-		HMODULE dxgiDLL = ::LoadLibraryExW(L"dxgi.DLL", nullptr, 0x00000800 /* LOAD_LIBRARY_SEARCH_SYSTEM32 */);
-		HMODULE d3d12DLL = ::LoadLibraryExW(L"d3d12.DLL", nullptr, 0x00000800 /* LOAD_LIBRARY_SEARCH_SYSTEM32 */);
-
-		CreateDXGIFactory1 = (PFN_CREATE_DXGI_FACTORY)GetProcAddress(dxgiDLL, "CreateDXGIFactory1");
-
-		if (CreateDXGIFactory1 == nullptr)
-		{
-			ALIMER_LOGERROR("Function CreateDXGIFactory1 not found in dxgi module.");
-			return;
-		}
-
-		CreateDXGIFactory2 = (PFN_CREATE_DXGI_FACTORY2)GetProcAddress(dxgiDLL, "CreateDXGIFactory2");
-
-		if (CreateDXGIFactory2 == nullptr)
-		{
-			ALIMER_LOGERROR("Function CreateDXGIFactory2 not found in dxgi module.");
-			return;
-		}
-
-		// 
-		D3D12CreateDevice = (PFN_D3D12_CREATE_DEVICE)GetProcAddress(d3d12DLL, "D3D12CreateDevice");
-
-		if (D3D12CreateDevice == nullptr)
-		{
-			ALIMER_LOGERROR("Function D3D12CreateDevice not found.");
-			return;
-		}
-
-		D3D12SerializeRootSignature = (PFN_D3D12_SERIALIZE_ROOT_SIGNATURE)GetProcAddress(d3d12DLL, "D3D12SerializeRootSignature");
-		if (D3D12SerializeRootSignature == nullptr)
-		{
-			ALIMER_LOGERROR("Function D3D12SerializeRootSignature not found.");
-			return;
-		}
-
-		D3D12GetDebugInterface = (PFN_D3D12_GET_DEBUG_INTERFACE)GetProcAddress(d3d12DLL, "D3D12GetDebugInterface");
-		if (D3D12GetDebugInterface == nullptr)
-		{
-			ALIMER_LOGERROR("Function D3D12GetDebugInterface not found.");
-			return;
-		}
-#endif
-
 #ifdef _DEBUG
-		// Enable the debug layer (requires the Graphics Tools "optional feature").
-		// NOTE: Enabling the debug layer after device creation will invalidate the active device.
+		if (D3D12GetDebugInterface)
 		{
-			ComPtr<ID3D12Debug> debugController;
-			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+			// Enable the debug layer (requires the Graphics Tools "optional feature").
+			// NOTE: Enabling the debug layer after device creation will invalidate the active device.
 			{
-				debugController->EnableDebugLayer();
+				ComPtr<ID3D12Debug> debugController;
+				if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+				{
+					debugController->EnableDebugLayer();
 
-				// Enable additional debug layers.
-				dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+					// Enable additional debug layers.
+					dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+				}
 			}
 		}
 #endif
@@ -88,9 +47,65 @@ namespace Alimer
 		_copyQueue.Shutdown();
 	}
 
+	bool Direct3D12Device::IsSupported()
+	{
+		static bool availableCheck = false;
+		static bool isAvailable = false;
+
+		if (availableCheck)
+			return isAvailable;
+
+#if WINDOWS_USE_DYNAMIC_LIB
+		HMODULE dxgiDLL = ::LoadLibraryExW(L"dxgi.DLL", nullptr, 0x00000800 /* LOAD_LIBRARY_SEARCH_SYSTEM32 */);
+		HMODULE d3d12DLL = ::LoadLibraryExW(L"d3d12.DLL", nullptr, 0x00000800 /* LOAD_LIBRARY_SEARCH_SYSTEM32 */);
+
+		CreateDXGIFactory1 = (PFN_CREATE_DXGI_FACTORY)GetProcAddress(dxgiDLL, "CreateDXGIFactory1");
+
+		if (CreateDXGIFactory1 == nullptr)
+		{
+			availableCheck = true;
+			isAvailable = false;
+			return false;
+		}
+
+		CreateDXGIFactory2 = (PFN_CREATE_DXGI_FACTORY2)GetProcAddress(dxgiDLL, "CreateDXGIFactory2");
+
+		if (CreateDXGIFactory2 == nullptr)
+		{
+			availableCheck = true;
+			isAvailable = false;
+			return false;
+		}
+
+		// 
+		D3D12CreateDevice = (PFN_D3D12_CREATE_DEVICE)GetProcAddress(d3d12DLL, "D3D12CreateDevice");
+
+		if (D3D12CreateDevice == nullptr)
+		{
+			availableCheck = true;
+			isAvailable = false;
+			return false;
+		}
+
+		D3D12SerializeRootSignature = (PFN_D3D12_SERIALIZE_ROOT_SIGNATURE)GetProcAddress(d3d12DLL, "D3D12SerializeRootSignature");
+		if (D3D12SerializeRootSignature == nullptr)
+		{
+			availableCheck = true;
+			isAvailable = false;
+			return false;
+		}
+
+		// Optional entries
+		D3D12GetDebugInterface = (PFN_D3D12_GET_DEBUG_INTERFACE)GetProcAddress(d3d12DLL, "D3D12GetDebugInterface");
+#endif
+
+		availableCheck = isAvailable = true;
+		return isAvailable;
+	}
+
 	bool Direct3D12Device::Initialize()
 	{
-		if (!Parent::Initialize())
+		if (!GraphicsDevice::Initialize())
 			return false;
 
 		ComPtr<IDXGIAdapter1> hardwareAdapter;
