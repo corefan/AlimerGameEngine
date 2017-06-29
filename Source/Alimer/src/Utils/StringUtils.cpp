@@ -9,6 +9,15 @@
 
 namespace Alimer
 {
+	int strcmpnocase(const char* s1, const char* s2)
+	{
+#if defined(_MSC_VER)
+		return _strcmpi(s1, s2);
+#else
+		return strcasecmp(s1, s2);
+#endif
+	}
+
 	String StringUtils::ToString(bool value, bool yesNo)
 	{
 		if (value)
@@ -96,6 +105,15 @@ namespace Alimer
 	String StringUtils::ToString(const WString& value)
 	{
 		return String(value.begin(), value.end());
+	}
+
+	String StringUtils::ToString(const char* formatString, ...)
+	{
+		va_list args;
+		va_start(args, formatString);
+		String result = StringUtils::Format(formatString, args);
+		va_end(args);
+		return result;
 	}
 
 	WString StringUtils::ToWString(bool value, bool yesNo)
@@ -216,112 +234,53 @@ namespace Alimer
 
 	String StringUtils::Format(const char* formatString, va_list args)
 	{
-		int pos = 0, lastPos = 0;
-		int length = (int)strlen(formatString);
-
-		String result;
-
-		while (true)
+		// Declare a moderately sized buffer on the stack that should be
+		// large enough to accommodate most log requests.
+		int size = 1024;
+		char stackBuffer[1024];
+		std::vector<char> dynamicBuffer;
+		char* str = stackBuffer;
+		for (; ; )
 		{
-			// Scan the format string and find %a argument where a is one of d, f, s ...
-			while (pos < length && formatString[pos] != '%') pos++;
-			{
-				result.append(formatString + lastPos, pos - lastPos);
-			}
+			// Pass one less than size to leave room for NULL terminator
+			int needed = vsnprintf(str, size - 1, formatString, args);
 
-			if (pos >= length)
+			// NOTE: Some platforms return -1 when vsnprintf runs out of room, while others return
+			// the number of characters actually needed to fill the buffer.
+			if (needed >= 0 && needed < size)
 			{
-				return result;
-			}
-
-			char format = formatString[pos + 1];
-			pos += 2;
-			lastPos = pos;
-
-			switch (format)
-			{
-				// Integer
-			case 'd':
-			case 'i':
-			{
-				int arg = va_arg(args, int);
-				result.append(ToString(arg));
+				// Successfully wrote buffer. Added a NULL terminator in case it wasn't written.
+				str[needed] = '\0';
+				va_end(args);
 				break;
 			}
 
-			// Unsigned
-			case 'u':
-			{
-				unsigned arg = va_arg(args, unsigned);
-				result.append(ToString(arg));
-				break;
-			}
-
-			// Unsigned long
-			case 'l':
-			{
-				unsigned long arg = va_arg(args, unsigned long);
-				result.append(ToString(arg));
-				break;
-			}
-
-			// Real
-			case 'f':
-			{
-				double arg = va_arg(args, double);
-				result.append(ToString(arg));
-				break;
-			}
-
-			// Character
-			case 'c':
-			{
-				int arg = va_arg(args, int);
-				result.append(ToString(arg));
-				break;
-			}
-
-			// C string
-			case 's':
-			{
-				char* arg = va_arg(args, char*);
-				result.append(arg);
-				break;
-			}
-
-			// Hex
-			case 'x':
-			{
-				char buf[CONVERSION_BUFFER_LENGTH];
-				int arg = va_arg(args, int);
-				int arglen = ::sprintf(buf, "%x", arg);
-				result.append(buf, (size_t)arglen);
-				break;
-			}
-
-			// Pointer
-			case 'p':
-			{
-				char buf[CONVERSION_BUFFER_LENGTH];
-				int arg = va_arg(args, int);
-				int arglen = ::sprintf(buf, "%p", reinterpret_cast<void*>(arg));
-				result.append(buf, (size_t)arglen);
-				break;
-			}
-
-			case '%':
-			{
-				result.append("%", 1);
-				break;
-			}
-
-			default:
-				ALIMER_LOGWARNING("Unsupported format specifier: '%c'", format);
-				break;
-			}
+			size = needed > 0 ? (needed + 1) : (size * 2);
+			dynamicBuffer.resize(size);
+			str = &dynamicBuffer[0];
 		}
 
-		return result;
+		return String(str);
+	}
+
+	int StringUtils::Compare(const char* str1, const char* str2, bool caseSensitive)
+	{
+		if (caseSensitive)
+		{
+			return strcmp(str1, str2);
+		}
+
+		return strcmpnocase(str1, str2);
+	}
+
+	int StringUtils::Compare(const String& str1, const String& str2, bool caseSensitive)
+	{
+		if (caseSensitive)
+		{
+			return strcmp(str1.c_str(), str2.c_str());
+		}
+
+		return strcmpnocase(str1.c_str(), str2.c_str());
 	}
 
 	size_t StringUtils::CountElements(const char* str, char separator)
@@ -374,6 +333,59 @@ namespace Alimer
 
 		return ret;
 	}
+
+	bool StringUtils::ParseBool(const String& str)
+	{
+		if (str.empty())
+			return false;
+
+		size_t length = str.length();
+
+		for (size_t i = 0; i < length; ++i)
+		{
+			char c = Alimer::ToLower(str[i]);
+			if (c == 't' || c == 'y' || c == '1')
+				return true;
+			else if (c != ' ' && c != '\t')
+				break;
+		}
+
+		return false;
+	}
+
+	int32_t StringUtils::ParseInt(const String& source)
+	{
+		if (source.empty())
+			return 0;
+
+		// Explicitly ask for base 10 to prevent source starts with '0' or '0x' from being converted to base 8 or base 16, respectively
+		return strtol(source.c_str(), 0, 10);
+	}
+
+	uint32_t StringUtils::ParseUInt(const String& source)
+	{
+		if (source.empty())
+			return 0;
+
+		return strtoul(source.c_str(), 0, 10);
+	}
+
+	float StringUtils::ParseFloat(const String& source)
+	{
+		if (source.empty())
+			return 0.0f;
+
+		return (float)strtod(source.c_str(), 0);
+	}
+
+	double StringUtils::ParseDouble(const String& source)
+	{
+		if (source.empty())
+			return 0.0;
+
+		return strtod(source.c_str(), 0);
+	}
+
 
 	bool StringUtils::ParseVector2(const String& str, Vector2* result)
 	{

@@ -40,6 +40,8 @@ namespace Alimer
 		static String ToString(long double value);
 		static String ToString(const wchar_t* value);
 		static String ToString(const WString& value);
+		/// Return a formatted string.
+		static String ToString(const char* formatString, ...);
 
 		static WString ToWString(bool value, bool yesNo = false);
 		static WString ToWString(char value);
@@ -60,8 +62,26 @@ namespace Alimer
 		static String Format(const char* format, ...);
 		static String Format(const char* format, va_list args);
 
+		/// Compare two C strings.
+		static int Compare(const char* str1, const char* str2, bool caseSensitive);
+
+		/// Compare two C strings.
+		static int Compare(const String& str1, const String& str2, bool caseSensitive);
+
+
 		/// Return the amount of substrings split by a separator char.
 		static size_t CountElements(const char* str, char separator);
+
+		/// Parse a bool from a C string. Check for the first non-empty character (converted to lowercase) being either 't', 'y' or '1'.
+		static bool ParseBool(const String& source);
+		/// Parse an integer from a C string.
+		static int32_t ParseInt(const String& source);
+		/// Parse an unsigned integer from a C string.
+		static uint32_t ParseUInt(const String& source);
+		/// Parse a float from a C string.
+		static float ParseFloat(const String& source);
+		/// Parse a double from a C string.
+		static double ParseDouble(const String& source);
 
 		/// Parse from a string. Return true on success.
 		static bool ParseVector2(const String& str, Vector2* result);
