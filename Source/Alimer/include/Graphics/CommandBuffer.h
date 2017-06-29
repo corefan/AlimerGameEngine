@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Graphics/CommandEncoder.h"
+#include "Graphics/RenderPassCommandEncoder.h"
 
 namespace Alimer
 {
@@ -26,6 +27,8 @@ namespace Alimer
 	};
 
 	ALIMER_BITMASK(CommandQueueMask);
+
+	class GraphicsDevice;
 
 	/**
 	* Command Buffer.

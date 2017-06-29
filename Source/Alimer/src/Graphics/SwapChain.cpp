@@ -9,9 +9,10 @@
 
 namespace Alimer
 {
-	SwapChain::SwapChain()
+	SwapChain::SwapChain(GraphicsDevice* device)
+		: GraphicsResource(device, GraphicsResourceType::SwapChain)
 	{
-		
+
 	}
 
 	SwapChain::~SwapChain()

@@ -229,7 +229,11 @@ namespace Alimer
 			passDesc.colorAttachments[0].storeAction = StoreAction::Store;
 			passDesc.colorAttachments[0].texture = _swapChain->GetCurrentBackBuffer();
 
+			IntRect renderArea(0, 0, _window->GetWidth(), _window->GetHeight());
+
 			auto encoder = commandBuffer->CreateRenderCommandEncoder(passDesc);
+			encoder->SetViewport(renderArea);
+			encoder->SetScissor(renderArea);
 		}
 
 		_graphicsDevice->Submit(commandBuffer);

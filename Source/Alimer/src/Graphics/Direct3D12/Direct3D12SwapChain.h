@@ -30,7 +30,6 @@ namespace Alimer
 		void Present() override;
 
 	private:
-		Direct3D12Device* _device;
 		uint32_t _presentInterval = 0;
 
 		UINT _rtvDescriptorSize;

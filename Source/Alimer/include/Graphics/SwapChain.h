@@ -7,21 +7,24 @@
 
 #pragma once
 
+#include "Graphics/GraphicsResource.h"
 #include "Graphics/Texture.h"
 #include "Core/Window.h"
 
 namespace Alimer
 {
+	class GraphicsDevice;
+
 	/**
 	* SwapChain.
 	*/
-	class ALIMER_API SwapChain : public RefCounted
+	class ALIMER_API SwapChain : public GraphicsResource
 	{
 	protected:
 		/**
 		* Constructor.
 		*/
-		SwapChain();
+		SwapChain(GraphicsDevice* device);
 
 	public:
 		/**
@@ -42,6 +45,7 @@ namespace Alimer
 		uint32_t GetBackBuffersCount() const {
 			return (uint32_t)_backbufferTextures.size();
 		}
+
 
 	protected:
 		uint32_t _currentBackBufferIndex = 0;

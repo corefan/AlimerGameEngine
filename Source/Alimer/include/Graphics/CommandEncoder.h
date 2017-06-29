@@ -41,12 +41,4 @@ namespace Alimer
 
 		CommandBuffer* _commandBuffer;
 	};
-
-	class ALIMER_API RenderPassCommandEncoder : public CommandEncoder {
-	protected:
-		explicit RenderPassCommandEncoder(CommandBuffer* commandBuffer)
-			: CommandEncoder(commandBuffer) {}
-	};
-
-	using RenderPassCommandEncoderPtr = RefPtr<RenderPassCommandEncoder>;
 }

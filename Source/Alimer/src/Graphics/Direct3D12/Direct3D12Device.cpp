@@ -67,6 +67,14 @@ namespace Alimer
 
 	Direct3D12Device::~Direct3D12Device()
 	{
+		Finalize();
+	}
+
+	void Direct3D12Device::Finalize()
+	{
+		// Free all pending resources.
+		GraphicsDevice::Finalize();
+
 		_graphicsQueue.Shutdown();
 		_computeQueue.Shutdown();
 		_copyQueue.Shutdown();

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "Core/RefPtr.h"
 #include "Graphics/PhysicalDevice.h"
 #include "Graphics/SwapChain.h"
 #include "Graphics/CommandBuffer.h"
@@ -27,6 +28,8 @@ namespace Alimer
 	*/
 	class ALIMER_API GraphicsDevice : public RefCounted
 	{
+		friend class GraphicsResource;
+
 	protected:
 		/**
 		* Constructor.
@@ -83,13 +86,24 @@ namespace Alimer
 			return _initialized;
 		}
 
+	private:
+		/// Add a GPU resource to keep track of.
+		void AddGraphicsResource(GraphicsResource* resource);
+		/// Remove a GPU resource. 
+		void RemoveGraphicsResource(GraphicsResource* resource);
+
 	protected:
+		virtual void Finalize();
+
 		GraphicsDeviceType _deviceType;
 		bool _initialized = false;
 		std::vector<PhysicalDevice*> _physicalDevices;
 		PhysicalDevice* _physicalDevice = nullptr;
 
 	private:
+		std::vector<GraphicsResource*> _gpuResources;
+		std::mutex _gpuResourceMutex;
+
 		DISALLOW_COPY_AND_ASSIGN(GraphicsDevice);
 	};
 }

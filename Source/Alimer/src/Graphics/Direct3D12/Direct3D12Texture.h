@@ -32,7 +32,6 @@ namespace Alimer
 		}
 
 	private:
-		Direct3D12Device* _device;
 		D3D12_CPU_DESCRIPTOR_HANDLE _renderTargetViewHandle;
 	};
 }

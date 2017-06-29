@@ -32,6 +32,7 @@ namespace Alimer
 		static bool IsSupported();
 
 		bool Initialize(PhysicalDevice* physicalDevice) override;
+		void Finalize() override;
 
 		RefPtr<SwapChain> CreateSwapChain(Window* window, uint32_t frameCount, bool verticalSync) override;
 

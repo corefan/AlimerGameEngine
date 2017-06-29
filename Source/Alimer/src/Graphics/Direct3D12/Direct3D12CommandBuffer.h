@@ -23,9 +23,16 @@ namespace Alimer
 
 		void EndEncoding() override;
 
+		void SetScissors(uint32_t scissorCount, const IntRect* pScissors) override;
+		void SetScissor(IntRect scissor) override;
+
+		void SetViewports(uint32_t viewportCount, const Viewport* pViewports) override;
+		void SetViewport(Viewport viewport) override;
+
 	private:
 		ID3D12GraphicsCommandList* _commandList;
 		D3D12_CPU_DESCRIPTOR_HANDLE _renderTargetDescriptors[MAX_COLOR_ATTACHMENTS];
+
 		bool _encoded = false;
 	};
 

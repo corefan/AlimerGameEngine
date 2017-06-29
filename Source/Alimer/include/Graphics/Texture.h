@@ -7,20 +7,22 @@
 
 #pragma once
 
-#include "Core/RefCounted.h"
+#include "Graphics/GraphicsResource.h"
 
 namespace Alimer
 {
+	class GraphicsDevice;
+
 	/**
 	* Texture.
 	*/
-	class ALIMER_API Texture : public RefCounted
+	class ALIMER_API Texture : public GraphicsResource
 	{
 	protected:
 		/**
 		* Constructor.
 		*/
-		Texture();
+		Texture(GraphicsDevice* device);
 
 	public:
 		/**

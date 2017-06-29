@@ -34,7 +34,7 @@ namespace Alimer
 				_commandList->ClearRenderTargetView(_renderTargetDescriptors[i], clearColor, 0, nullptr);
 			}
 		}
-		
+
 		_commandList->OMSetRenderTargets(numRenderTargetDescriptors, _renderTargetDescriptors, FALSE, nullptr);
 	}
 
@@ -49,6 +49,64 @@ namespace Alimer
 		{
 			_encoded = true;
 		}
+	}
+
+	void Direct3D12RenderPassCommandEncoder::SetScissors(uint32_t scissorCount, const IntRect* pScissors)
+	{
+		static D3D12_RECT d3dScissors[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+
+		for (uint32_t i = 0; i < scissorCount; ++i)
+		{
+			d3dScissors[i].left = static_cast<LONG>(pScissors[i].x);
+			d3dScissors[i].top = static_cast<LONG>(pScissors[i].y);
+			d3dScissors[i].right = static_cast<LONG>(pScissors[i].GetRight());
+			d3dScissors[i].bottom = static_cast<LONG>(pScissors[i].GetBottom());
+		}
+
+		_commandList->RSSetScissorRects(scissorCount, d3dScissors);
+	}
+
+	void Direct3D12RenderPassCommandEncoder::SetScissor(IntRect scissor)
+	{
+		D3D12_RECT d3dScissor = {};
+
+		d3dScissor.left = static_cast<LONG>(scissor.x);
+		d3dScissor.top = static_cast<LONG>(scissor.y);
+		d3dScissor.right = static_cast<LONG>(scissor.GetRight());
+		d3dScissor.bottom = static_cast<LONG>(scissor.GetBottom());
+
+		_commandList->RSSetScissorRects(1, &d3dScissor);
+	}
+
+	void Direct3D12RenderPassCommandEncoder::SetViewports(uint32_t viewportCount, const Viewport* pViewports)
+	{
+		static D3D12_VIEWPORT d3dViewports[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+
+		for (uint32_t i = 0; i < viewportCount; ++i)
+		{
+			d3dViewports[i].TopLeftX = pViewports[i].x;
+			d3dViewports[i].TopLeftY = pViewports[i].y;
+			d3dViewports[i].Width = pViewports[i].width;
+			d3dViewports[i].Height = pViewports[i].height;
+			d3dViewports[i].MinDepth = pViewports[i].minDepth;
+			d3dViewports[i].MaxDepth = pViewports[i].maxDepth;
+		}
+
+		_commandList->RSSetViewports(viewportCount, d3dViewports);
+	}
+
+	void Direct3D12RenderPassCommandEncoder::SetViewport(Viewport viewport)
+	{
+		D3D12_VIEWPORT d3dViewport = {};
+
+		d3dViewport.TopLeftX = viewport.x;
+		d3dViewport.TopLeftY = viewport.y;
+		d3dViewport.Width = viewport.width;
+		d3dViewport.Height = viewport.height;
+		d3dViewport.MinDepth = viewport.minDepth;
+		d3dViewport.MaxDepth = viewport.maxDepth;
+
+		_commandList->RSSetViewports(1, &d3dViewport);
 	}
 
 	Direct3D12CommandBuffer::Direct3D12CommandBuffer(Direct3D12Device* device, D3D12_COMMAND_LIST_TYPE commandListType)
@@ -71,7 +129,7 @@ namespace Alimer
 
 	/*void Direct3D12CommandBuffer::EndRenderPass()
 	{
-		TransitionResource(_boundFramebuffer, D3D12_RESOURCE_STATE_COMMON, true);
+	TransitionResource(_boundFramebuffer, D3D12_RESOURCE_STATE_COMMON, true);
 	}*/
 
 	void Direct3D12CommandBuffer::Submit(bool waitForExecution)

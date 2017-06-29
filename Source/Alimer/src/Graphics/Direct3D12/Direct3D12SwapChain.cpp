@@ -12,8 +12,7 @@
 namespace Alimer
 {
 	Direct3D12SwapChain::Direct3D12SwapChain(Direct3D12Device* device, Window* window, uint32_t frameCount, bool verticalSync)
-		: SwapChain()
-		, _device(device)
+		: SwapChain(device)
 		, _presentInterval(verticalSync ? 1 : 0)
 	{
 		// Describe and create the swap chain.
@@ -60,7 +59,7 @@ namespace Alimer
 				ComPtr<ID3D12Resource> renderTargetResource;
 				ThrowIfFailed(swapChain->GetBuffer(n, IID_PPV_ARGS(&renderTargetResource)));
 				device->GetD3D12Device()->CreateRenderTargetView(renderTargetResource.Get(), nullptr, renderTargetViewHandle);
-				_backbufferTextures[n] = new Direct3D12Texture(_device, renderTargetResource, renderTargetViewHandle);
+				_backbufferTextures[n] = new Direct3D12Texture(device, renderTargetResource, renderTargetViewHandle);
 				renderTargetViewHandle.ptr += _rtvDescriptorSize;
 			}
 		}

@@ -35,6 +35,34 @@ namespace Alimer
 
 	GraphicsDevice::~GraphicsDevice()
 	{
+		Finalize();
+	}
+
+	/// Sort resources by type.
+	bool SortResources(GraphicsResource* x, GraphicsResource* y)
+	{
+		return x->GetResourceType() < y->GetResourceType();
+	}
+
+	void GraphicsDevice::Finalize()
+	{
+		if (!_initialized)
+			return;
+
+		{
+			std::lock_guard<std::mutex> lock(_gpuResourceMutex);
+
+			// Release all GPU objects that still exist
+			std::sort(_gpuResources.begin(), _gpuResources.end(), SortResources);
+			for (auto i = _gpuResources.begin(); i != _gpuResources.end(); ++i)
+			{
+				(*i)->Release();
+			}
+
+			_gpuResources.clear();
+		}
+
+		_initialized = false;
 	}
 
 	bool GraphicsDevice::Initialize(PhysicalDevice* physicalDevice)
@@ -46,6 +74,23 @@ namespace Alimer
 		_initialized = true;
 
 		return true;
+	}
+
+	void GraphicsDevice::AddGraphicsResource(GraphicsResource* resource)
+	{
+		std::lock_guard<std::mutex> lock(_gpuResourceMutex);
+		_gpuResources.push_back(resource);
+	}
+
+	void GraphicsDevice::RemoveGraphicsResource(GraphicsResource* resource)
+	{
+		std::lock_guard<std::mutex> lock(_gpuResourceMutex);
+
+		auto iter = std::find(_gpuResources.begin(), _gpuResources.end(), resource);
+		if (iter != _gpuResources.end())
+		{
+			_gpuResources.erase(iter);
+		}
 	}
 
 	std::set<GraphicsDeviceType> GraphicsDevice::GetAvailableDrivers()

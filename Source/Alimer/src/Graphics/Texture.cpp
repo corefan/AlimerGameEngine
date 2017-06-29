@@ -9,9 +9,10 @@
 
 namespace Alimer
 {
-	Texture::Texture()
+	Texture::Texture(GraphicsDevice* device)
+		: GraphicsResource(device, GraphicsResourceType::Texture)
 	{
-		
+
 	}
 
 	Texture::~Texture()

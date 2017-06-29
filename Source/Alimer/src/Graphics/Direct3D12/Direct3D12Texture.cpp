@@ -11,8 +11,7 @@
 namespace Alimer
 {
 	Direct3D12Texture::Direct3D12Texture(Direct3D12Device* device, ComPtr<ID3D12Resource> renderTargetResource, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetViewHandle)
-		: Texture()
-		, _device(device)
+		: Texture(device)
 		, _renderTargetViewHandle(renderTargetViewHandle)
 	{
 		resource = renderTargetResource;
