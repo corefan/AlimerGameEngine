@@ -21,6 +21,7 @@ project (Alimer)
 get_filename_component(ALIMER_ROOT_DIR "." ABSOLUTE)
 set (ALIMER_EXTERNAL_DIR "${ALIMER_ROOT_DIR}/external")
 set (ALIMER_INCLUDE_DIR "${ALIMER_ROOT_DIR}/Source/Alimer/include")
+set (ALIMER_SHADER_COMPILER_INCLUDE_DIR "${ALIMER_ROOT_DIR}/Source/ShaderCompiler/include")
 
 # Set CMake modules search path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake/Modules)
@@ -61,6 +62,13 @@ message( "Engine version : ${ALIMER_ENGINE_VERSION}, root path : ${ALIMER_ROOT_D
 message( "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )
 
 # External/ThirdParty
+if ( ALIMER_PLATFORM_WINDOWS OR ALIMER_PLATFORM_LINUX OR ALIMER_PLATFORM_OSX)
+	# glslang
+	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/glslang)
+	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/HLSL)
+	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/SPIRV)
+	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/OGLCompilersDLL)
+endif()
 
 # Setup common include folders
 include_directories(${ALIMER_INCLUDE_DIR})

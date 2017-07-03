@@ -92,11 +92,3 @@ if(WIN32)
     source_group("GenericCodeGen" REGULAR_EXPRESSION "GenericCodeGen/*")
     source_group("MachineIndependent\\Preprocessor" REGULAR_EXPRESSION "MachineIndependent/preprocessor/*")
 endif(WIN32)
-
-install(TARGETS glslang
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-foreach(file ${HEADERS})
-    get_filename_component(dir ${file} DIRECTORY)
-    install(FILES ${file} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/glslang/${dir})
-endforeach()

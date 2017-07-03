@@ -23,6 +23,3 @@ set_target_properties (HLSL PROPERTIES FOLDER hlsl)
 if(WIN32)
     source_group("Source" FILES ${SOURCES} ${HEADERS})
 endif(WIN32)
-
-install(TARGETS HLSL
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
