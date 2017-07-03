@@ -191,9 +191,9 @@ namespace Alimer
 		d3dCommandBuffer->Submit(waitForExecution);
 	}
 
-	ShaderPtr Direct3D12Device::CreateShader(uint32_t codeSize, const uint32_t* code)
+	ShaderPtr Direct3D12Device::CreateShader(ShaderStage stage, uint32_t codeSize, const uint32_t* code)
 	{
-		return new Direct3D12Shader(this, codeSize, code);
+		return new Direct3D12Shader(this, stage, codeSize, code);
 	}
 
 	void Direct3D12Device::WaitForFence(uint64_t fenceValue)

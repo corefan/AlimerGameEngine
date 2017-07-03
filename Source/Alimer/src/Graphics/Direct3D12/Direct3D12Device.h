@@ -39,7 +39,7 @@ namespace Alimer
 		RefPtr<CommandBuffer> CreateCommandBuffer() override;
 		void Submit(RefPtr<CommandBuffer> commandBuffer, bool waitForExecution) override;
 
-		ShaderPtr CreateShader(uint32_t codeSize, const uint32_t* code) override;
+		ShaderPtr CreateShader(ShaderStage stage, uint32_t codeSize, const uint32_t* code) override;
 
 		void WaitForFence(uint64_t fenceValue);
 

@@ -9,8 +9,9 @@
 
 namespace Alimer
 {
-	Shader::Shader(GraphicsDevice* device, uint32_t codeSize, const uint32_t* code)
+	Shader::Shader(GraphicsDevice* device, ShaderStage stage, uint32_t codeSize, const uint32_t* code)
 		: GraphicsResource(device, GraphicsResourceType::Shader)
+		, _stage(stage)
 		, spirv(code, code + codeSize)
 	{
 		

@@ -54,15 +54,21 @@ namespace Alimer
 		/**
 		* Constructor.
 		*/
-		Shader(GraphicsDevice* device, uint32_t codeSize, const uint32_t* code);
+		Shader(GraphicsDevice* device, ShaderStage stage, uint32_t codeSize, const uint32_t* code);
 
 	public:
 		/**
 		* Destructor.
 		*/
 		virtual ~Shader();
+
+		/**
+		* Gets the Shader stage.
+		*/
+		ShaderStage GetStage() const { return _stage; }
 		
 	protected:
+		ShaderStage _stage;
 		std::vector<uint32_t> spirv;
 
 	private:

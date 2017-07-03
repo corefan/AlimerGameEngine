@@ -10,8 +10,8 @@
 
 namespace Alimer
 {
-	Direct3D12Shader::Direct3D12Shader(Direct3D12Device* device, uint32_t codeSize, const uint32_t* code)
-		: Shader(device, codeSize, code)
+	Direct3D12Shader::Direct3D12Shader(Direct3D12Device* device, ShaderStage stage, uint32_t codeSize, const uint32_t* code)
+		: Shader(device, stage, codeSize, code)
 	{
 		
 	}

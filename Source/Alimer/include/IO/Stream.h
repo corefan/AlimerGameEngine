@@ -69,17 +69,17 @@ namespace Alimer
 
 		/**
 		* Read data from stream.
-		* @param buffer Destination buffer
-		* @param size Number of bytes to read
+		* @param buffer Destination buffer.
+		* @param size Number of bytes to read.
 		* @return Number of bytes actually read
 		*/
 		virtual uint64_t Read(void* buffer, uint64_t size) const = 0;
 
 		/**
 		* Write data to a stream.
-		* @param buffer Source buffer
-		* @param size Number of bytes to write
-		* @return Number of bytes actually written
+		* @param buffer Source buffer.
+		* @param size Number of bytes to write.
+		* @return Number of bytes actually written.
 		*/
 		virtual uint64_t Write(const void* buffer, uint64_t size) = 0;
 

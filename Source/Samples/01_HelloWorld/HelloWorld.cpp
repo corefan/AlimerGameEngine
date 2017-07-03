@@ -40,7 +40,7 @@ void HelloWorld::Initialize()
 	}
 
 	auto spirv_vertex = compiler.AcquireSpirv();
-	_engine->GetGraphicsDevice()->CreateShader(spirv_vertex.size(), spirv_vertex.data());
+	_engine->GetGraphicsDevice()->CreateShader(ShaderStage::Vertex, spirv_vertex.size(), spirv_vertex.data());
 }
 
 ALIMER_MAIN(HelloWorld);

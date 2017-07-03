@@ -76,7 +76,7 @@ namespace Alimer
 		/**
 		* Creates a shader.
 		*/
-		virtual ShaderPtr CreateShader(uint32_t codeSize, const uint32_t* code) = 0;
+		virtual ShaderPtr CreateShader(ShaderStage stage, uint32_t codeSize, const uint32_t* code) = 0;
 
 		/**
 		* Gets the type of this device.

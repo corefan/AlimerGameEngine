@@ -20,14 +20,19 @@ namespace Alimer
 		/**
 		* Constructor.
 		*/
-		Direct3D12Shader(Direct3D12Device* device, uint32_t codeSize, const uint32_t* code);
+		Direct3D12Shader(Direct3D12Device* device, ShaderStage stage, uint32_t codeSize, const uint32_t* code);
 
 		/**
 		* Destructor.
 		*/
 		virtual ~Direct3D12Shader();
 
+		D3D12_SHADER_BYTECODE GetByteCode() const {
+			return _byteCode;
+		}
+
 	private:
-		std::string _hlslSource;
+		ComPtr<ID3DBlob> _compiledShader;
+		D3D12_SHADER_BYTECODE _byteCode;
 	};
 }
