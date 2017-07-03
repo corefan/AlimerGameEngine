@@ -7,7 +7,7 @@
 
 #include "HelloWorld.h"
 #include "Engine/Main.h"
-#include "Core/TimeSpan.h"
+#include "ShaderCompiler.h"
 
 HelloWorld::HelloWorld()
 	: Application()
@@ -24,6 +24,23 @@ bool HelloWorld::Setup()
 	//_settings.graphicsDeviceType = GraphicsDeviceType::Vulkan;
 
 	return true;
+}
+
+void HelloWorld::Initialize()
+{
+	ShaderCompiler compiler;
+	if (!compiler.Compile(SourceShaderLanguage::GLSL, ShaderStage::Vertex, R"(
+        #version 450
+        layout(location = 0) in vec4 pos;
+        void main() {
+            gl_Position = pos;
+        })"))
+	{
+
+	}
+
+	auto spirv_vertex = compiler.AcquireSpirv();
+	_engine->GetGraphicsDevice()->CreateShader(spirv_vertex.size(), spirv_vertex.data());
 }
 
 ALIMER_MAIN(HelloWorld);

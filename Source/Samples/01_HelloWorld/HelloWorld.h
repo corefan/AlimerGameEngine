@@ -19,4 +19,5 @@ public:
 
 private:
 	bool Setup() override;
+	void Initialize() override;
 };
