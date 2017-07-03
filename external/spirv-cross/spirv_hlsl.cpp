@@ -148,7 +148,7 @@ string CompilerHLSL::image_type_hlsl_legacy(const SPIRType &type)
 
 string CompilerHLSL::image_type_hlsl(const SPIRType &type)
 {
-	if (options.shader_model <= 30)
+	if (hlsl_options.shader_model_major <= 3)
 		return image_type_hlsl_legacy(type);
 	else
 		return image_type_hlsl_modern(type);
@@ -290,7 +290,7 @@ const char *CompilerHLSL::to_storage_qualifiers_glsl(const SPIRVariable &var)
 
 void CompilerHLSL::emit_builtin_outputs_in_struct()
 {
-	bool legacy = options.shader_model <= 30;
+	bool legacy = hlsl_options.shader_model_major <= 3;
 	for (uint32_t i = 0; i < 64; i++)
 	{
 		if (!(active_output_builtins & (1ull << i)))
@@ -315,7 +315,7 @@ void CompilerHLSL::emit_builtin_outputs_in_struct()
 			// If point_size_compat is enabled, just ignore PointSize.
 			// PointSize does not exist in HLSL, but some code bases might want to be able to use these shaders,
 			// even if it means working around the missing feature.
-			if (options.point_size_compat)
+			if (hlsl_options.point_size_compat)
 				break;
 			else
 				SPIRV_CROSS_THROW("Unsupported builtin in HLSL.");
@@ -332,7 +332,7 @@ void CompilerHLSL::emit_builtin_outputs_in_struct()
 
 void CompilerHLSL::emit_builtin_inputs_in_struct()
 {
-	bool legacy = options.shader_model <= 30;
+	bool legacy = hlsl_options.shader_model_major <= 3;
 	for (uint32_t i = 0; i < 64; i++)
 	{
 		if (!(active_input_builtins & (1ull << i)))
@@ -474,7 +474,7 @@ void CompilerHLSL::emit_interface_block_in_struct(const SPIRVariable &var, unord
 
 	string binding;
 	bool use_binding_number = true;
-	bool legacy = options.shader_model <= 30;
+	bool legacy = hlsl_options.shader_model_major <= 3;
 	if (execution.model == ExecutionModelFragment && var.storage == StorageClassOutput)
 	{
 		binding = join(legacy ? "COLOR" : "SV_Target", get_decoration(var.self, DecorationLocation));
@@ -560,7 +560,7 @@ void CompilerHLSL::emit_builtin_variables()
 			break;
 
 		case BuiltInPointSize:
-			if (options.point_size_compat)
+			if (hlsl_options.point_size_compat)
 			{
 				// Just emit the global variable, it will be ignored.
 				type = "float";
@@ -635,7 +635,7 @@ void CompilerHLSL::emit_resources()
 		}
 	}
 
-	if (execution.model == ExecutionModelVertex && options.shader_model <= 30)
+	if (execution.model == ExecutionModelVertex && hlsl_options.shader_model_major <= 3)
 	{
 		statement("uniform float4 gl_HalfPixel;");
 		emitted = true;
@@ -827,7 +827,7 @@ void CompilerHLSL::emit_resources()
 
 	if (requires_textureProj)
 	{
-		if (options.shader_model >= 40)
+		if (hlsl_options.shader_model_major >= 4)
 		{
 			statement("float SPIRV_Cross_projectTextureCoordinate(float2 coord)");
 			begin_scope();
@@ -879,9 +879,20 @@ void CompilerHLSL::emit_buffer_block(const SPIRVariable &var)
 {
 	auto &type = get<SPIRType>(var.basetype);
 
+	bool is_uav = has_decoration(type.self, DecorationBufferBlock);
+	if (is_uav)
+		SPIRV_CROSS_THROW("Buffer is SSBO (UAV). This is currently unsupported.");
+
 	add_resource_name(type.self);
 
-	statement("struct _", to_name(type.self));
+	string struct_name;
+	if (hlsl_options.shader_model_major >= 5 && hlsl_options.shader_model_minor >= 1)
+		struct_name = to_name(type.self);
+	else
+		struct_name = join("_", to_name(type.self));
+
+	// First, declare the struct of the UBO.
+	statement("struct ", struct_name);
 	begin_scope();
 
 	type.member_name_cache.clear();
@@ -896,11 +907,17 @@ void CompilerHLSL::emit_buffer_block(const SPIRVariable &var)
 	end_scope_decl();
 	statement("");
 
-	// TODO: UAV?
-	statement("cbuffer ", to_name(type.self), to_resource_binding(var));
-	begin_scope();
-	statement("_", to_name(type.self), " ", to_name(var.self), ";");
-	end_scope_decl();
+	if (hlsl_options.shader_model_major >= 5 && hlsl_options.shader_model_minor >= 1) // SM >= 5.1 uses ConstantBuffer<T> instead of cbuffer.
+	{
+		statement("ConstantBuffer<", struct_name, "> ", to_name(var.self), type_to_array_glsl(type), to_resource_binding(var), ";");
+	}
+	else
+	{
+		statement("cbuffer ", to_name(type.self), to_resource_binding(var));
+		begin_scope();
+		statement(struct_name, " ", to_name(var.self), type_to_array_glsl(type), ";");
+		end_scope_decl();
+	}
 }
 
 void CompilerHLSL::emit_push_constant_block(const SPIRVariable &var)
@@ -922,7 +939,7 @@ string CompilerHLSL::to_func_call_arg(uint32_t id)
 {
 	string arg_str = CompilerGLSL::to_func_call_arg(id);
 
-	if (options.shader_model <= 30)
+	if (hlsl_options.shader_model_major <= 3)
 		return arg_str;
 
 	// Manufacture automatic sampler arg if the arg is a SampledImage texture and we're in modern HLSL.
@@ -982,7 +999,7 @@ void CompilerHLSL::emit_function_prototype(SPIRFunction &func, uint64_t return_f
 
 		// Flatten a combined sampler to two separate arguments in modern HLSL.
 		auto &arg_type = get<SPIRType>(arg.type);
-		if (options.shader_model > 30 && arg_type.basetype == SPIRType::SampledImage)
+		if (hlsl_options.shader_model_major > 3 && arg_type.basetype == SPIRType::SampledImage)
 		{
 			// Manufacture automatic sampler arg for SampledImage texture
 			decl += ", ";
@@ -1040,7 +1057,7 @@ void CompilerHLSL::emit_hlsl_entry_point()
 	auto &execution = get_entry_point();
 	statement(require_output ? "SPIRV_Cross_Output " : "void ", "main(", merge(arguments), ")");
 	begin_scope();
-	bool legacy = options.shader_model <= 30;
+	bool legacy = hlsl_options.shader_model_major <= 3;
 
 	// Copy builtins from entry point arguments to globals.
 	for (uint32_t i = 0; i < 64; i++)
@@ -1182,14 +1199,16 @@ void CompilerHLSL::emit_hlsl_entry_point()
 		if (execution.model == ExecutionModelVertex)
 		{
 			// Do various mangling on the gl_Position.
-			if (options.shader_model <= 30)
+			if (hlsl_options.shader_model_major <= 3)
 			{
 				statement("stage_output.gl_Position.x = stage_output.gl_Position.x - gl_HalfPixel.x * "
 				          "stage_output.gl_Position.w;");
 				statement("stage_output.gl_Position.y = stage_output.gl_Position.y + gl_HalfPixel.y * "
 				          "stage_output.gl_Position.w;");
 			}
-			if (options.flip_vert_y)
+
+			// Not needed: we fix space in GLSL
+			/*if (options.flip_vert_y)
 			{
 				statement("stage_output.gl_Position.y = -stage_output.gl_Position.y;");
 			}
@@ -1197,7 +1216,7 @@ void CompilerHLSL::emit_hlsl_entry_point()
 			{
 				statement(
 				    "stage_output.gl_Position.z = (stage_output.gl_Position.z + stage_output.gl_Position.w) * 0.5;");
-			}
+			}*/
 		}
 
 		statement("return stage_output;");
@@ -1339,7 +1358,7 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 
 	if (op == OpImageFetch)
 	{
-		if (options.shader_model < 40)
+		if (hlsl_options.shader_model_major < 4)
 		{
 			SPIRV_CROSS_THROW("texelFetch is not supported in HLSL shader model 2/3.");
 		}
@@ -1354,7 +1373,7 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 			SPIRV_CROSS_THROW("Sampling non-float textures is not supported in HLSL.");
 		}
 
-		if (options.shader_model >= 40)
+		if (hlsl_options.shader_model_major >= 4)
 		{
 			texop += img_expr;
 
@@ -1412,7 +1431,7 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 
 	expr += texop;
 	expr += "(";
-	if (options.shader_model < 40)
+	if (hlsl_options.shader_model_major < 4)
 	{
 		if (combined_image)
 			SPIRV_CROSS_THROW("Separate images/samplers are not supported in HLSL shader model 2/3.");
@@ -1460,7 +1479,7 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 		coord_expr = "SPIRV_Cross_projectTextureCoordinate(" + coord_expr + ")";
 	}
 
-	if (options.shader_model < 40 && lod)
+	if (hlsl_options.shader_model_major < 4 && lod)
 	{
 		auto &coordtype = expression_type(coord);
 		string coord_filler;
@@ -1471,7 +1490,7 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 		coord_expr = "float4(" + coord_expr + coord_filler + ", " + to_expression(lod) + ")";
 	}
 
-	if (options.shader_model < 40 && bias)
+	if (hlsl_options.shader_model_major < 4 && bias)
 	{
 		auto &coordtype = expression_type(coord);
 		string coord_filler;
@@ -1511,14 +1530,14 @@ void CompilerHLSL::emit_texture_op(const Instruction &i)
 		expr += to_expression(grad_y);
 	}
 
-	if (lod && options.shader_model >= 40 && op != OpImageFetch)
+	if (lod && hlsl_options.shader_model_major >= 4 && op != OpImageFetch)
 	{
 		forward = forward && should_forward(lod);
 		expr += ", ";
 		expr += to_expression(lod);
 	}
 
-	if (bias && options.shader_model >= 40)
+	if (bias && hlsl_options.shader_model_major >= 4)
 	{
 		forward = forward && should_forward(bias);
 		expr += ", ";
@@ -1586,10 +1605,21 @@ string CompilerHLSL::to_resource_binding(const SPIRVariable &var)
 			if (has_decoration(type.self, DecorationBufferBlock))
 				space = "u"; // UAV
 			else if (has_decoration(type.self, DecorationBlock))
-				space = "c"; // Constant buffers
+			{
+				if (hlsl_options.shader_model_major >= 5 && hlsl_options.shader_model_minor >= 1)
+					space = "b"; // Constant buffers
+				else
+					space = "c"; // Constant buffers
+			}
 		}
 		else if (storage == StorageClassPushConstant)
-			space = "c"; // Constant buffers
+		{
+			if (hlsl_options.shader_model_major >= 5 && hlsl_options.shader_model_minor >= 1)
+				space = "b"; // Constant buffers
+			else
+				space = "c"; // Constant buffers
+		}
+
 
 		break;
 	}
@@ -1664,7 +1694,7 @@ void CompilerHLSL::emit_legacy_uniform(const SPIRVariable &var)
 void CompilerHLSL::emit_uniform(const SPIRVariable &var)
 {
 	add_resource_name(var.self);
-	if (options.shader_model >= 40)
+	if (hlsl_options.shader_model_major >= 4)
 		emit_modern_uniform(var);
 	else
 		emit_legacy_uniform(var);
@@ -2003,6 +2033,7 @@ string CompilerHLSL::compile()
 	CompilerGLSL::options.es = false;
 	CompilerGLSL::options.version = 450;
 	CompilerGLSL::options.vulkan_semantics = true;
+	CompilerGLSL::options.vertex.fixup_clipspace = false;
 	backend.float_literal_suffix = true;
 	backend.double_literal_suffix = false;
 	backend.long_long_literal_suffix = true;

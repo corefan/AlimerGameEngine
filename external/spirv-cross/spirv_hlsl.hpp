@@ -26,11 +26,10 @@ namespace spirv_cross
 class CompilerHLSL : public CompilerGLSL
 {
 public:
-	struct Options
+	struct OptionsHLSL
 	{
-		uint32_t shader_model = 30; // TODO: map ps_4_0_level_9_0,... somehow
-		bool fixup_clipspace = false;
-		bool flip_vert_y = false;
+		uint32_t shader_model_major = 4;
+		uint32_t shader_model_minor = 0;
 
 		// Allows the PointSize builtin, and ignores it, as PointSize is not supported in HLSL.
 		bool point_size_compat = false;
@@ -46,14 +45,14 @@ public:
 	{
 	}
 
-	const Options &get_options() const
+	const OptionsHLSL &get_hlsl_options() const
 	{
-		return options;
+		return hlsl_options;
 	}
 
-	void set_options(Options &opts)
+	void set_hlsl_options(OptionsHLSL &opts)
 	{
-		options = opts;
+		hlsl_options = opts;
 	}
 
 	std::string compile() override;
@@ -91,7 +90,7 @@ private:
 
 	const char *to_storage_qualifiers_glsl(const SPIRVariable &var) override;
 
-	Options options;
+	OptionsHLSL hlsl_options;
 	bool requires_op_fmod = false;
 	bool requires_textureProj = false;
 
