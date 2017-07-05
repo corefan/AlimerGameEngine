@@ -2,7 +2,7 @@
 ** Alimer - Copyright (C) 2016-2017 Amer Koleci.
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.md', which is part of this source code package.
+** file 'LICENSE', which is part of this source code package.
 */
 
 #include "Engine/Engine.h"
@@ -62,6 +62,7 @@ namespace Alimer
 		{
 			if (newSettings.externalWindowHandle)
 			{
+				ALIMER_LOGINFOF("Creating window from external handle");
 				_window.reset(new Window(newSettings.externalWindowHandle));
 			}
 			else
@@ -70,77 +71,78 @@ namespace Alimer
 
 				_window.reset(new Window(newSettings.width, newSettings.height, newSettings.title, newSettings.resizable, newSettings.fullscreen));
 
-				if (newSettings.graphicsDeviceType == GraphicsDeviceType::Default)
-				{
-					auto availableDrivers = GraphicsDevice::GetAvailableDrivers();
-
-					if (availableDrivers.find(GraphicsDeviceType::Direct3D12) != availableDrivers.end())
-					{
-						newSettings.graphicsDeviceType = GraphicsDeviceType::Direct3D12;
-					}
-					else if (availableDrivers.find(GraphicsDeviceType::Vulkan) != availableDrivers.end())
-					{
-						newSettings.graphicsDeviceType = GraphicsDeviceType::Vulkan;
-					}
-					else if (availableDrivers.find(GraphicsDeviceType::OpenGL) != availableDrivers.end())
-					{
-						newSettings.graphicsDeviceType = GraphicsDeviceType::OpenGL;
-					}
-					else
-					{
-						newSettings.graphicsDeviceType = GraphicsDeviceType::Empty;
-					}
-				}
-
-				// Now create the device.
-				switch (newSettings.graphicsDeviceType)
-				{
-				case GraphicsDeviceType::Empty:
-					ALIMER_LOGINFO("Using empty graphics backend.");
-					break;
-
-				case GraphicsDeviceType::Direct3D12:
-#if defined(ALIMER_WINDOWS)
-					if (Direct3D12Device::IsSupported())
-					{
-						ALIMER_LOGINFO("Using DirectX12 graphics backend.");
-						_graphicsDevice = new Direct3D12Device();
-					}
-					else
-#endif
-					{
-						ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
-					}
-
-					break;
-
-				case GraphicsDeviceType::Vulkan:
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
-					/*if (VulkanDevice::IsSupported())
-					{
-						ALIMER_LOGINFO("Using Vulkan graphics backend.");
-						_graphicsDevice = new VulkanDevice();
-					}
-					else*/
-#endif
-					{
-						ALIMER_LOGINFO("Vulkan backend not supported on given platform.");
-					}
-
-					break;
-				}
-
-				// Initialize graphics device.
-				// Initialize graphics device.
-				PhysicalDevice* physicalDevice = _graphicsDevice->GetPhysicalDevices()[0];
-				if (!_graphicsDevice->Initialize(physicalDevice))
-				{
-					return false;
-				}
-
-				// Create swap chain using our main window.
-				_swapChain = _graphicsDevice->CreateSwapChain(_window.get(), 2, newSettings.verticalSync);
 			}
+
+			if (newSettings.graphicsDeviceType == GraphicsDeviceType::Default)
+			{
+				auto availableDrivers = GraphicsDevice::GetAvailableDrivers();
+
+				if (availableDrivers.find(GraphicsDeviceType::Direct3D12) != availableDrivers.end())
+				{
+					newSettings.graphicsDeviceType = GraphicsDeviceType::Direct3D12;
+				}
+				else if (availableDrivers.find(GraphicsDeviceType::Vulkan) != availableDrivers.end())
+				{
+					newSettings.graphicsDeviceType = GraphicsDeviceType::Vulkan;
+				}
+				else if (availableDrivers.find(GraphicsDeviceType::OpenGL) != availableDrivers.end())
+				{
+					newSettings.graphicsDeviceType = GraphicsDeviceType::OpenGL;
+				}
+				else
+				{
+					newSettings.graphicsDeviceType = GraphicsDeviceType::Empty;
+				}
+			}
+
+			// Now create the device.
+			switch (newSettings.graphicsDeviceType)
+			{
+			case GraphicsDeviceType::Empty:
+				ALIMER_LOGINFO("Using empty graphics backend.");
+				break;
+
+			case GraphicsDeviceType::Direct3D12:
+#if defined(ALIMER_WINDOWS)
+				if (Direct3D12Device::IsSupported())
+				{
+					ALIMER_LOGINFO("Using DirectX12 graphics backend.");
+					_graphicsDevice = new Direct3D12Device();
+				}
+				else
+#endif
+				{
+					ALIMER_LOGINFO("DirectX12 backend not supported on given platform.");
+				}
+
+				break;
+
+			case GraphicsDeviceType::Vulkan:
+#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+				/*if (VulkanDevice::IsSupported())
+				{
+					ALIMER_LOGINFO("Using Vulkan graphics backend.");
+					_graphicsDevice = new VulkanDevice();
+				}
+				else*/
+#endif
+			{
+				ALIMER_LOGINFO("Vulkan backend not supported on given platform.");
+			}
+
+			break;
+			}
+
+			// Initialize graphics device.
+			// Initialize graphics device.
+			PhysicalDevice* physicalDevice = _graphicsDevice->GetPhysicalDevices()[0];
+			if (!_graphicsDevice->Initialize(physicalDevice))
+			{
+				return false;
+			}
+
+			// Create swap chain using our main window.
+			_swapChain = _graphicsDevice->CreateSwapChain(_window.get(), 2, newSettings.verticalSync);
 		}
 
 		// Initialize audio backend.
