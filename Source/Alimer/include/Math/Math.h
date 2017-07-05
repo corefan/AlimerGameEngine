@@ -34,4 +34,24 @@ namespace Alimer
 	}
 
 #endif
+
+	/// Clamp a number to a range.
+	template <class T>
+	inline T Clamp(T value, T min, T max)
+	{
+		if (value < min)
+			return min;
+		else if (value > max)
+			return max;
+		else
+			return value;
+	}
+
+	/// Smoothly damp between values.
+	template <class T>
+	inline T SmoothStep(T lhs, T rhs, T t)
+	{
+		t = Clamp((t - lhs) / (rhs - lhs), T(0.0), T(1.0)); // Saturate t
+		return t * t * (3.0 - 2.0 * t);
+	}
 }
