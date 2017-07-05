@@ -17,4 +17,4 @@
 - [Wiki](https://github.com/AlimerGameEngine/AlimerGameEngine/wiki)
 
 ## License
-Licensed under the Apache 2.0 license, see [LICENSE](https://github.com/AlimerGameEngine/AlimerGameEngine/blob/master/LICENSE.md) for details.
+Licensed under the Apache 2.0 license, see [LICENSE](https://github.com/AlimerGameEngine/AlimerGameEngine/blob/master/LICENSE) for details.
