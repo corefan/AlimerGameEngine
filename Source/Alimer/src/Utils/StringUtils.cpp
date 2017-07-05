@@ -2,7 +2,7 @@
 ** Alimer - Copyright (C) Amer Koleci
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.md', which is part of this source code package.
+** file 'LICENSE', which is part of this source code package.
 */
 
 #include "Utils/StringUtils.h"
@@ -332,6 +332,37 @@ namespace Alimer
 		}
 
 		return ret;
+	}
+
+	String StringUtils::ToUpper(const String& str)
+	{
+		String result(str);
+		std::transform(result.begin(), result.end(), result.begin(), std::toupper);
+		return result;
+	}
+
+	String StringUtils::ToLower(const String& str)
+	{
+		String result(str);
+		std::transform(result.begin(), result.end(), result.begin(), std::tolower);
+		return result;
+	}
+
+	String StringUtils::LeftTrim(String str)
+	{
+		str.erase(str.begin(), std::find_if(str.begin(), str.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+		return str;
+	}
+
+	String StringUtils::RightTrim(String str)
+	{
+		str.erase(std::find_if(str.rbegin(), str.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), str.end());
+		return str;
+	}
+
+	String StringUtils::Trim(String str)
+	{
+		return LeftTrim(RightTrim(str));
 	}
 
 	bool StringUtils::ParseBool(const String& str)

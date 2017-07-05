@@ -6,6 +6,7 @@
 */
 
 #include "Engine/Engine.h"
+#include "IO/FileSystem.h"
 
 #if defined(ALIMER_WINDOWS) || defined(ALIMER_WINMODERN)
 #include "Graphics/Direct3D12/Direct3D12Device.h"
@@ -22,8 +23,10 @@ namespace Alimer
 
 	Engine::Engine()
 		: _logger(new Logger())
+		, _time(new Time())
 	{
-		_time = new Time();
+		// Point to current program (exe) directory.
+		FileSystem::SetCurrentDir(FileSystem::GetProgramDir());
 
 		engineInstance = this;
 	}

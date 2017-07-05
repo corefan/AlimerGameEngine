@@ -2,7 +2,7 @@
 ** Alimer - Copyright (C) Amer Koleci
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.md', which is part of this source code package.
+** file 'LICENSE', which is part of this source code package.
 */
 
 #pragma once
@@ -70,6 +70,13 @@ namespace Alimer
 
 		/// Return the amount of substrings split by a separator char.
 		static size_t CountElements(const char* str, char separator);
+
+		static String ToUpper(const String& str);
+		static String ToLower(const String& str);
+
+		static String LeftTrim(String str);
+		static String RightTrim(String str);
+		static String Trim(String str);
 
 		/// Parse a bool from a C string. Check for the first non-empty character (converted to lowercase) being either 't', 'y' or '1'.
 		static bool ParseBool(const String& source);

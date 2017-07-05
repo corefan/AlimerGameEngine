@@ -2,7 +2,7 @@
 ** Alimer - Copyright (C) Amer Koleci
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.txt', which is part of this source code package.
+** file 'LICENSE', which is part of this source code package.
 */
 
 #pragma once
@@ -71,7 +71,7 @@ namespace Alimer
 		* Read data from stream.
 		* @param buffer Destination buffer.
 		* @param size Number of bytes to read.
-		* @return Number of bytes actually read
+		* @return Number of bytes actually read.
 		*/
 		virtual uint64_t Read(void* buffer, uint64_t size) const = 0;
 
