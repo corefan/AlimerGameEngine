@@ -216,6 +216,30 @@ if (MSVC)
 	# Disable (useless) compiler warnings on project level 
 	add_definitions( /wd4786 /wd4503 /wd4251 /wd4275 /wd4290 /wd4661 /wd4127 /wd4100 /wd4702 /wd4201 /wd4310)
 
+	# Resolve Windows SDK path
+	# WIN10_SDK_PATH will be something like C:\Program Files (x86)\Windows Kits\10
+    get_filename_component(WIN10_SDK_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v10.0;InstallationFolder]" ABSOLUTE CACHE)
+
+    # TEMP_WIN10_SDK_VERSION will be something like ${CMAKE_CURRENT_SOURCE_DIR}\10.0.14393 or ${CMAKE_CURRENT_SOURCE_DIR}\10.0.14393.0
+    get_filename_component(TEMP_WIN10_SDK_VERSION "[HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Microsoft SDKs\\Windows\\v10.0;ProductVersion]" ABSOLUTE CACHE)
+
+    # strip off ${CMAKE_CURRENT_SOURCE_DIR} to get just the version number
+    get_filename_component(WIN10_SDK_VERSION ${TEMP_WIN10_SDK_VERSION} NAME)
+    # WIN10_SDK_VERSION will be something like 10.0.14393 or 10.0.14393.0; we need the one that matches the directory name.
+    if (IS_DIRECTORY "${WIN10_SDK_PATH}/Include/${WIN10_SDK_VERSION}.0")
+        set(WIN10_SDK_VERSION "${WIN10_SDK_VERSION}.0")
+    endif()
+
+	if (CMAKE_GENERATOR MATCHES "Visual Studio.*ARM" )
+        set(WIN10_SDK_LIB_PATH ${WIN10_SDK_PATH}/Lib/${WIN10_SDK_VERSION}/um/arm)
+    elseif (CMAKE_GENERATOR MATCHES "Visual Studio.*ARM64" )
+        set(WIN10_SDK_LIB_PATH ${WIN10_SDK_PATH}/Lib/${WIN10_SDK_VERSION}/um/arm64)
+    elseif (CMAKE_GENERATOR MATCHES "Visual Studio.*Win64" )
+        set(WIN10_SDK_LIB_PATH ${WIN10_SDK_PATH}/Lib/${WIN10_SDK_VERSION}/um/x64)
+    else()
+        set(WIN10_SDK_LIB_PATH ${WIN10_SDK_PATH}/Lib/${WIN10_SDK_VERSION}/um/x86)
+    endif()
+
 elseif (NOT XCODE)
 	if(ALIMER_PLATFORM_ANDROID)
 		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
@@ -224,6 +248,10 @@ elseif (NOT XCODE)
 		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-invalid-offsetof -fno-exceptions -D__STDINT_LIMITS")
 		# set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s WASM=1 -s 'BINARYEN_METHOD=\"native-wasm,asmjs\"'")
+		if (ALIMER_THREADING)
+			set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_PTHREADS=1")
+			set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_PTHREADS=1")
+        endif ()
 	else ()
 		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
 		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-invalid-offsetof -ffast-math -D__STDINT_LIMITS")

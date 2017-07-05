@@ -2,7 +2,7 @@
 ** Alimer - Copyright (C) Amer Koleci
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.md', which is part of this source code package.
+** file 'LICENSE', which is part of this source code package.
 */
 
 #pragma once
@@ -12,6 +12,7 @@
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include <d3dcompiler.h>
 
 namespace Alimer
 {

@@ -7,10 +7,16 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/include/Version.in.h ${CMAKE_CURRENT
 # Define source files
 file (GLOB H_FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 file (GLOB CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-set(HEADER_FILES ${H_FILES})
-set(SOURCE_FILES ${CPP_FILES})
+
+# Define SPIRV-Cross files
+FILE (GLOB SPIRV_CROSS_H_FILES ${ALIMER_EXTERNAL_DIR}/spirv-Cross/*.hpp)
+FILE (GLOB SPIRV_CROSS_CPP_FILES ${ALIMER_EXTERNAL_DIR}/spirv-Cross/*.cpp)
+
+set(HEADER_FILES ${H_FILES} ${SPIRV_CROSS_H_FILES})
+set(SOURCE_FILES ${CPP_FILES} ${SPIRV_CROSS_CPP_FILES})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${ALIMER_EXTERNAL_DIR})
 
 # Add engine sub folders, both include and src
 alimer_add_directory(Core)
@@ -45,7 +51,9 @@ if ( MSVC )
 endif ( MSVC )
 
 if(ALIMER_PLATFORM_WINDOWS)
+	find_library(D3DCOMPILER_LIBRARY NAMES d3dcompiler.lib HINTS ${WIN10_SDK_LIB_PATH})
 	target_link_libraries(${TARGET_NAME} PRIVATE Winmm ws2_32 iphlpapi)
+	target_link_libraries(${TARGET_NAME} PRIVATE ${D3DCOMPILER_LIBRARY})
 elseif (ALIMER_PLATFORM_ANDROID)
 	target_link_libraries(${TARGET_NAME} android log)
 endif()
