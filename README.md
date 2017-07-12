@@ -1,4 +1,7 @@
 # Alimer Engine
+
+[![Contribute!](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/AlimerGameEngine/AlimerGameEngine/issues)
+
 **Alimer Engine** is a cross platform 2D and 3D engine implemented in C++ and released under Apache 2.0 license, inspired by [Urho3D](https://github.com/urho3d/Urho3D) and [Ogre3D](http://www.ogre3d.org).
 
 ## Features
