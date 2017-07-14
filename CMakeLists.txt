@@ -9,7 +9,6 @@ if (COMMAND cmake_policy)
     # MACOSX_RPATH is enabled by default
     cmake_policy (SET CMP0042 NEW)
 endif ()
-
 if(MSVC)
 	CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION("10.0.10586.0")
 endif()
@@ -63,11 +62,30 @@ message( "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )
 
 # External/ThirdParty
 if ( ALIMER_PLATFORM_WINDOWS OR ALIMER_PLATFORM_LINUX OR ALIMER_PLATFORM_OSX)
+	option(ENABLE_AMD_EXTENSIONS "Enables support of AMD-specific extensions" ON)
+	option(ENABLE_NV_EXTENSIONS "Enables support of Nvidia-specific extensions" ON)
+	option(ENABLE_HLSL "Enables HLSL input support" ON)
+	
+	if(ENABLE_AMD_EXTENSIONS)
+	    add_definitions(-DAMD_EXTENSIONS)
+	endif(ENABLE_AMD_EXTENSIONS)
+	
+	if(ENABLE_NV_EXTENSIONS)
+	    add_definitions(-DNV_EXTENSIONS)
+	endif(ENABLE_NV_EXTENSIONS)
+	
+	if(ENABLE_HLSL)
+	    add_definitions(-DENABLE_HLSL)
+	endif(ENABLE_HLSL)
+	
 	# glslang
 	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/glslang)
-	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/HLSL)
 	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/SPIRV)
 	add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/OGLCompilersDLL)
+	
+	if (ENABLE_HLSL)
+		add_subdirectory (${ALIMER_EXTERNAL_DIR}/glslang/HLSL)
+	endif (ENABLE_HLSL)
 endif()
 
 # Setup common include folders

@@ -18,8 +18,14 @@ set(HEADERS
     hlslParseables.h)
 
 add_library(HLSL STATIC ${SOURCES} ${HEADERS})
-set_target_properties (HLSL PROPERTIES FOLDER hlsl)
+set_property(TARGET HLSL PROPERTY FOLDER hlsl)
+set_property(TARGET HLSL PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(WIN32)
     source_group("Source" FILES ${SOURCES} ${HEADERS})
 endif(WIN32)
+
+if(ENABLE_GLSLANG_INSTALL)
+    install(TARGETS HLSL
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif(ENABLE_GLSLANG_INSTALL)
