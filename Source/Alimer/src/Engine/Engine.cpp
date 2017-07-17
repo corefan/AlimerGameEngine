@@ -8,13 +8,18 @@
 #include "Engine/Engine.h"
 #include "IO/FileSystem.h"
 
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_WINMODERN)
-#include "Graphics/Direct3D12/Direct3D12Device.h"
-#include "Audio/XAudio2/XAudio2Audio.h"
+// Graphics
+#if defined(ALIMER_SUPPORTS_DIRECT3D12)
+#	include "Graphics/Direct3D12/Direct3D12Device.h"
 #endif
 
 #if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
-//#include "Graphics/Vulkan/VulkanDevice.h"
+//#	include "Graphics/Vulkan/VulkanDevice.h"
+#endif
+
+// Audio
+#if defined(ALIMER_SUPPORTS_XAUDIO2)
+#	include "Audio/XAudio2/XAudio2Audio.h"
 #endif
 
 namespace Alimer
@@ -174,7 +179,7 @@ namespace Alimer
 			ALIMER_LOGINFO("Using empty audio backend.");
 			break;
 
-#if defined(_MSC_VER)
+#if defined(ALIMER_SUPPORTS_XAUDIO2)
 		case AudioDeviceType::XAudio2:
 			ALIMER_LOGINFO("Using XAudio 2 audio backend.");
 			_audio = new XAudio2Audio();

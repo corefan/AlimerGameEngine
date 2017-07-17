@@ -46,7 +46,7 @@ namespace Alimer
 		{
 			availableDrivers.insert(AudioDeviceType::Empty);
 
-#if defined(_MSC_VER)
+#if defined(ALIMER_SUPPORTS_XAUDIO2)
 			availableDrivers.insert(AudioDeviceType::XAudio2);
 #endif
 		}
