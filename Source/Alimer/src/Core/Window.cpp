@@ -8,13 +8,13 @@
 #include "Core/Window.h"
 #include "WindowImpl.h"
 
-#if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
+#if ALIMER_WINDOWS_FAMILY && !ALIMER_WINMODERN
 #include "Windows\WindowsWindow.h"
 typedef Alimer::priv::WindowsWindow PlatformWindowImpl;
-#elif defined(ALIMER_ANDROID)
+#elif ALIMER_ANDROID
 #include "Android\AndroidWindow.h"
 typedef Alimer::priv::AndroidWindow PlatformWindowImpl;
-#elif defined(ALIMER_HTML5)
+#elif ALIMER_EMSCRIPTEN
 #include "HTML5\WebWindow.h"
 typedef Alimer::priv::WebWindow PlatformWindowImpl;
 #endif

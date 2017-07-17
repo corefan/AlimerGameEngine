@@ -10,17 +10,17 @@
 #include "Platform.h"
 
 // Windows' HWND is a typedef on struct HWND__*
-#if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
+#if ALIMER_WINDOWS_FAMILY && !ALIMER_WINMODERN
 struct HWND__;
 #endif
 
 namespace Alimer
 {
-#if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
+#if ALIMER_WINDOWS_FAMILY && !ALIMER_WINMODERN
 	// Window handle is HWND (HWND__*) on Windows
 	typedef HWND__* WindowHandle;
 
-#elif defined(ALIMER_LINUX) 
+#elif ALIMER_LINUX
 
 	// window handle is window (unsigned long) on Unix - X11
 	typedef unsigned long WindowHandle;

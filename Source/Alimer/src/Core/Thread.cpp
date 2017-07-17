@@ -7,10 +7,10 @@
 
 #include "Core/Thread.h"
 
-#if defined(ALIMER_WINDOWS)
-#include <windows.h>
+#if ALIMER_WINDOWS_FAMILY
+#	include <windows.h>
 #else
-#include <unistd.h>
+#	include <unistd.h>
 #endif
 
 namespace Alimer

@@ -43,7 +43,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-#if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
+#if ALIMER_WINDOWS_FAMILY && !ALIMER_WINMODERN
 #	define WINDOWS_USE_DYNAMIC_LIB 1
 #endif
 

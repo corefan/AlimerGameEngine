@@ -6,8 +6,8 @@
 */
 
 #include "IO/FileStream.h"
-#if defined(ALIMER_WINDOWS)
-#include <windows.h>
+#if ALIMER_MICROSOFT_FAMILY
+#	include <windows.h>
 #else
 static const char* openMode[] =
 {
@@ -23,7 +23,7 @@ namespace Alimer
 	FileStream::FileStream(const String& fileName, FileAccess access)
 		: _access(access)
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		DWORD nativeAccess = 0;
 		if (access == FileAccess::Read)
 		{
@@ -84,7 +84,7 @@ namespace Alimer
 
 	bool FileStream::CanSeek() const
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		return _handle != INVALID_HANDLE_VALUE;
 #else
 		return _handle != nullptr;
@@ -93,7 +93,7 @@ namespace Alimer
 
 	void FileStream::Close()
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		if (_handle != INVALID_HANDLE_VALUE)
 		{
 			CloseHandle(_handle);
@@ -110,7 +110,7 @@ namespace Alimer
 
 	void FileStream::Flush()
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		FlushFileBuffers(_handle);
 #else
 		fflush((FILE*)_handle);
@@ -119,7 +119,7 @@ namespace Alimer
 
 	uint64_t FileStream::GetPosition() const
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		LARGE_INTEGER windowsoffset;
 		windowsoffset.QuadPart = 0;
 		if (!SetFilePointerEx(_handle, windowsoffset, &windowsoffset, FILE_CURRENT))
@@ -153,7 +153,7 @@ namespace Alimer
 			return (size_t)-1;
 		}
 
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		DWORD byteRead;
 		if (!ReadFile(_handle, buffer, (DWORD)size, &byteRead, nullptr))
 		{
@@ -177,7 +177,7 @@ namespace Alimer
 			return 0;
 		}
 
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		DWORD bytesWritten;
 		if (!WriteFile(_handle, buffer, (DWORD)size, &bytesWritten, nullptr))
 		{
@@ -197,7 +197,7 @@ namespace Alimer
 			return false;
 		}
 
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		DWORD windowswhence;
 		switch (origin)
 		{
@@ -229,7 +229,7 @@ namespace Alimer
 
 	bool FileStream::IsEof() const
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		if (_handle == INVALID_HANDLE_VALUE)
 			return true;
 

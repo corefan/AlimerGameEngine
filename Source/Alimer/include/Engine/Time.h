@@ -45,7 +45,7 @@ namespace Alimer
 		double GetTotalSeconds() const { return TicksToSeconds(_totalTicks); }
 
 		/// Get total number of updates since start of the program.
-		uint32 GetFrameCount() const { return _frameCount; }
+		uint32_t GetFrameCount() const { return _frameCount; }
 
 		/// Get the current framerate.
 		uint32_t GetFramesPerSecond() const { return _framesPerSecond; }

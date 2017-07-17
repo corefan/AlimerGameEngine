@@ -2,24 +2,43 @@
 ** Alimer - Copyright (C) 2016-2017 Amer Koleci.
 **
 ** This file is subject to the terms and conditions defined in
-** file 'LICENSE.md', which is part of this source code package.
+** file 'LICENSE', which is part of this source code package.
 */
 
 #pragma once
 
-#include <cstdint>
+#include <stdbool.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <float.h>
+#include <limits.h>
+#if !ALIMER_WINDOWS_FAMILY
+#  include <wchar.h>
+#endif
 
-typedef std::uint64_t	uint64;
-typedef std::uint32_t	uint32;
-typedef std::uint16_t	uint16;
-typedef std::uint8_t	uint8;
+#if ( ALIMER_LINUX )
+#  include <sys/types.h>
+#endif
 
-typedef std::int64_t	int64;
-typedef std::int32_t	int32;
-typedef std::int16_t	int16;
-typedef std::int8_t		int8;
+#ifndef __cplusplus
+#  define nullptr ((void*)0)
+#endif
 
 typedef wchar_t			wchar;
+
+/* Hash value */
+typedef uint64_t		hash_t;
+
+// Pointer arithmetic
+#define pointer_offset(ptr, ofs) (void*)((char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_offset_const(ptr, ofs) (const void*)((const char*)(ptr) + (ptrdiff_t)(ofs))
+#define pointer_diff(first, second) (ptrdiff_t)((const char*)(first) - (const char*)(second))
+
+#define ALIMER_DEFINE_HANDLE(object) typedef struct object##_T* object
+
+#ifdef __cplusplus
 
 template <typename T, unsigned int N>
 inline unsigned int ArraySize(T(&)[N])
@@ -74,6 +93,49 @@ void SafeDeleteArray(T*& resource)
 #include <mutex>
 #include <chrono>
 #include <typeindex>
+
+#endif // __cplusplus
+
+#if ALIMER_WINDOWS_FAMILY
+#   ifndef STRICT
+#       define STRICT 1
+#   endif
+#   ifndef WIN32_LEAN_AND_MEAN
+#       define WIN32_LEAN_AND_MEAN 1
+#   endif
+#   ifndef NOMINMAX
+#       define NOMINMAX 1
+#   endif
+
+//#	define NODRAWTEXT
+//#	define NOGDI
+//#	define NOBITMAP
+#	define NOMCX
+#	define NOSERVICE
+#	define NOHELP
+
+#	include <objbase.h>
+#	include <windows.h>
+#	include <windowsx.h>
+#	include <WinSock2.h>
+#	include <IPTypes.h>
+#	include <WS2tcpip.h>
+#	include <iphlpapi.h>
+#	include <share.h>
+#	include <io.h>
+#	include <shellapi.h>
+#	include <shellscalingapi.h>
+#	include <stdlib.h>
+#	include <ShlObj.h>
+#	include <DbgHelp.h>
+#	include <crtdbg.h>
+#	include <wrl.h>
+
+using Microsoft::WRL::ComPtr;
+
+#endif
+
+#ifdef __cplusplus
 
 // A macro to disallow the copy constructor and operator= functions.
 // This should be used in the private: declarations for a class.
@@ -138,6 +200,8 @@ namespace Alimer
 	typedef std::wstringstream WStringStream;
 	typedef std::stringstream StringStream;
 }
+
+#endif // __cplusplus
 
 #if defined(_WIN32)
 #pragma warning( disable : 4005 )

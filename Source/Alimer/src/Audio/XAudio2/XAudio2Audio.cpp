@@ -24,7 +24,7 @@ bool LoadModuleWithErrorMessage(const char* moduleName)
 {
 	if (!LoadLibraryA(moduleName))
 	{
-		uint32 errorCode = GetLastError();
+		uint32_t errorCode = GetLastError();
 		if (errorCode == ERROR_MOD_NOT_FOUND)
 		{
 			ALIMER_LOGERRORF("XAudio: Could not load '%s'.", moduleName);

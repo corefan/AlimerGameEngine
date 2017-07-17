@@ -8,10 +8,10 @@
 #include "Graphics/GraphicsDevice.h"
 
 #if defined(ALIMER_WINDOWS) || defined(ALIMER_WINMODERN)
-#include "Graphics/Direct3D12/Direct3D12Device.h"
+#	include "Graphics/Direct3D12/Direct3D12Device.h"
 #endif
 
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+#if defined(ALIMER_SUPPORTS_VULKAN)
 //#include "Graphics/Vulkan/VulkanDevice.h"
 #endif
 
@@ -101,14 +101,14 @@ namespace Alimer
 		{
 			availableDrivers.insert(GraphicsDeviceType::Empty);
 
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+#if defined(ALIMER_SUPPORTS_VULKAN)
 			/*if (VulkanDevice::IsSupported())
 			{
 				availableDrivers.insert(GraphicsDeviceType::Vulkan);
 			}*/
 #endif
 
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_WINMODERN)
+#if defined(ALIMER_SUPPORTS_DIRECT3D12)
 			if (Direct3D12Device::IsSupported())
 			{
 				availableDrivers.insert(GraphicsDeviceType::Direct3D12);

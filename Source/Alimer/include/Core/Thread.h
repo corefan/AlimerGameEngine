@@ -9,13 +9,13 @@
 
 #include "Prerequisites.h"
 
-#if !defined(ALIMER_WINDOWS)
-#include <pthread.h>
+#if ALIMER_LINUX_FAMILY
+#	include <pthread.h>
 #endif
 
 namespace Alimer
 {
-#if !defined(ALIMER_WINDOWS)
+#if ALIMER_LINUX_FAMILY
 	typedef pthread_t ThreadID;
 #else
 	typedef unsigned ThreadID;

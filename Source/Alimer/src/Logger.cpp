@@ -14,17 +14,17 @@
 #include <cstdarg>
 #include <fstream>
 
-#if ALIMER_WINDOWS
-#include <windows.h>
-#include <strsafe.h>
+#if ALIMER_MICROSOFT_FAMILY
+#	include <windows.h>
+#	include <strsafe.h>
 #endif
 
 #if ALIMER_ANDROID
 #include <android/log.h>
 #endif
 
-#if defined(ALIMER_HTML5)
-#include <emscripten.h>
+#if ALIMER_EMSCRIPTEN
+#	include <emscripten.h>
 #endif
 
 namespace Alimer
@@ -134,7 +134,7 @@ namespace Alimer
 			_loggerStream.flush();
 		}
 
-#if ALIMER_MACOS || ALIMER_LINUX
+#if ALIMER_UNIX_FAMILY
 		switch (level)
 		{
 		case LogLevel::Fatal:
@@ -148,7 +148,7 @@ namespace Alimer
 			break;
 		}
 
-#elif ALIMER_WINDOWS
+#elif ALIMER_MICROSOFT_FAMILY
 		std::vector<wchar_t> szBuffer(formattedMessage.length() + 2);
 		MultiByteToWideChar(CP_UTF8, 0, formattedMessage.c_str(), -1, szBuffer.data(), static_cast<int>(szBuffer.size()));
 		StringCchCatW(szBuffer.data(), szBuffer.size(), L"\n");
@@ -204,7 +204,7 @@ namespace Alimer
 		}
 		__android_log_print(priority, "Alimer", "%s", message.c_str());
 
-#elif ALIMER_HTML5
+#elif ALIMER_EMSCRIPTEN
 		int flags = EM_LOG_CONSOLE;
 		if (level == LogLevel::Error)
 		{

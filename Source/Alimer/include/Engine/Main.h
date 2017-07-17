@@ -10,7 +10,7 @@
 #include "Prerequisites.h"
 #include "Utils/CommandLine.h"
 
-#if defined(ALIMER_WINDOWS) 
+#if ALIMER_WINDOWS_FAMILY
 #	ifndef STRICT
 #		define STRICT 1
 #	endif
@@ -24,13 +24,13 @@
 #	endif
 
 #	include <Windows.h>
-#elif defined(ALIMER_ANDROID)
+#elif ALIMER_ANDROID
 #	include <android_native_app_glue.h>
 #endif
 
 #include "Engine/Application.h"
 
-#if defined(ALIMER_WINDOWS) && !defined(ALIMER_WINMODERN)
+#if ALIMER_WINDOWS_FAMILY && !ALIMER_WINMODERN
 #define ALIMER_MAIN(appClass) \
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow) {\
 		UNREFERENCED_PARAMETER(hInstance); \
@@ -41,14 +41,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdL
 		application->GetArgs()->Parse(::GetCommandLineW()); \
 		return application->Run(); \
 }
-#elif defined(ALIMER_WINMODERN)
+#elif ALIMER_WINMODERN
 #define ALIMER_MAIN(appClass) \
 [Platform::MTAThread] \
 int main(Platform::Array<Platform::String^>^) { \
 	std::unique_ptr<appClass> application(new appClass()); \
 	return application->Run(); \
 }
-#elif defined(ALIMER_ANDROID)
+#elif ALIMER_ANDROID
 #define ALIMER_MAIN(appClass) \
 android_app* AlimerAndroidAppState = nullptr; \
 void android_main(struct android_app* app_) { \

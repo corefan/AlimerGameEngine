@@ -13,7 +13,7 @@
 #	include "Graphics/Direct3D12/Direct3D12Device.h"
 #endif
 
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+#if defined(ALIMER_SUPPORTS_VULKAN)
 //#	include "Graphics/Vulkan/VulkanDevice.h"
 #endif
 
@@ -111,7 +111,7 @@ namespace Alimer
 				break;
 
 			case GraphicsDeviceType::Direct3D12:
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 				if (Direct3D12Device::IsSupported())
 				{
 					ALIMER_LOGINFO("Using DirectX12 graphics backend.");
@@ -126,7 +126,7 @@ namespace Alimer
 				break;
 
 			case GraphicsDeviceType::Vulkan:
-#if defined(ALIMER_WINDOWS) || defined(ALIMER_LINUX) || defined(ALIMER_ANDROID)
+#if defined(ALIMER_SUPPORTS_VULKAN)
 				/*if (VulkanDevice::IsSupported())
 				{
 					ALIMER_LOGINFO("Using Vulkan graphics backend.");

@@ -9,7 +9,7 @@
 
 #include "Core/Windows/WindowsHeaders.h"
 
-#if	defined(WINDOWS_USE_DYNAMIC_LIB)
+#if	ALIMER_WINDOWS_FAMILY
 
 #include <xaudio2.h>
 

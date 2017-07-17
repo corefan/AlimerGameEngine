@@ -8,8 +8,8 @@
 #include "IO/FileSystem.h"
 #include "Utils/StringUtils.h"
 
-#if defined(ALIMER_WINDOWS)
-#include <windows.h>
+#if ALIMER_MICROSOFT_FAMILY
+#	include <windows.h>
 #else
 #endif
 
@@ -87,24 +87,24 @@ namespace Alimer
 
 	String FileSystem::GetProgramDir()
 	{
-#if defined(ALIMER_ANDROID)
+#if ALIMER_ANDROID
 		// This is an internal directory specifier pointing to the assets in the .apk
 		// Files from this directory will be opened using special handling
 		return APK;
 #elif defined(IOS) || defined(TVOS)
 		return AddTrailingSlash(SDL_IOS_GetResourceDir());
-#elif defined(ALIMER_WINDOWS)
+#elif ALIMER_MICROSOFT_FAMILY
 		wchar_t exeName[MAX_PATH];
 		exeName[0] = 0;
 		GetModuleFileNameW(0, exeName, MAX_PATH);
 		return GetPath(StringUtils::ToString(exeName));
-#elif defined(ALIMER_APPLE)
+#elif ALIMER_APPLE
 		char exeName[MAX_PATH];
 		memset(exeName, 0, MAX_PATH);
 		unsigned size = MAX_PATH;
 		_NSGetExecutablePath(exeName, &size);
 		return GetPath(String(exeName));
-#elif defined(ALIMER_LINUX)
+#elif ALIMER_LINUX
 		char exeName[MAX_PATH];
 		memset(exeName, 0, MAX_PATH);
 		pid_t pid = getpid();
@@ -118,7 +118,7 @@ namespace Alimer
 
 	String FileSystem::GetCurrentDir()
 	{
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		wchar_t path[MAX_PATH];
 		path[0] = 0;
 		GetCurrentDirectoryW(MAX_PATH, path);
@@ -139,7 +139,7 @@ namespace Alimer
 			return false;
 		}*/
 
-#if defined(ALIMER_WINDOWS)
+#if ALIMER_MICROSOFT_FAMILY
 		if (SetCurrentDirectoryW(GetWideNativePath(pathName).c_str()) == FALSE)
 		{
 			ALIMER_LOGERRORF("Failed to change directory to %s", pathName.c_str());
